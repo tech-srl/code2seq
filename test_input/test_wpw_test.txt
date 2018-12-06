@@ -1,0 +1,5 @@
+1231 x|a,1|2|3,None b|b,2|x|4,None c|c,4,None d|d,x,None
+1232 a,1|2|3,None b|b,2|3|4,None d,4,None 
+1233 a,1|2|3,None a,2|3|4,None c|c,4,None 
+1234 a|a,1|2|3,None b|b,2|3|4,None c|c,4,None 
+1235 a|d,1|2|3,None b|c,2|4,None c,4,None 

@@ -1,0 +1,5 @@
+a z|x|a,1|2|3,a|a b|b,2|x|4,b|b c|c,4,c|x d|d,x,d|d
+b a,1|2|3,a|a b|b,2|3|4,b c|c,4,c d,4,d|d
+c a,1|2|3,a|a b|b,2|3|4,b c|c,4,c
+q a|a,1|2|3,a|a b|b,2|3|4,b|b c|c,COMMENT,c|c
+d a|a,1|2|3,a|a b|b,2|3|4,b|b c|c,4,c|c
