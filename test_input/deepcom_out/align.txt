@@ -1,3 +1,0 @@
-example_12.java Return the signature algorithm for a possible compound algorithm identifier containing an underscore. If not underscore is present, the argument is returned unmodified. However for an algorithm such as EC_RSA, return RSA.
-example_13.java The assumption made here is that this method is called with the correct parameter order.
-example_14.java Writes a long natural number in Golomb coding.

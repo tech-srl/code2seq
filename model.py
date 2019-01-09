@@ -6,7 +6,6 @@ import os
 import _pickle as pickle
 
 from common import Common
-from config import Config
 
 
 class Model:
@@ -66,6 +65,7 @@ class Model:
                                           target_to_index=self.target_to_index,
                                           config=self.config)
         optimizer, train_loss = self.build_training_graph(self.queue_thread.get_output())
+        self.print_hyperparams()
         print('Number of trainable params:', 
               np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
         self.initialize_session_variables(self.sess)
@@ -233,6 +233,25 @@ class Model:
                 if not subtok in filtered_predicted_names:
                     false_negative += 1
         return true_positive, false_positive, false_negative
+
+    def print_hyperparams(self):
+        print('Training batch size:\t', self.config.BATCH_SIZE)
+        print('Training path:\t\t\t', self.config.TRAIN_PATH)
+        print('Taking max contexts from each example:\t', self.config.MAX_CONTEXTS)
+        print('Random path sampling:\t', self.config.RANDOM_CONTEXTS)
+        print('Embedding size:\t\t\t', self.config.EMBEDDINGS_SIZE)
+        if self.config.BIRNN:
+            print('Using BiLSTMs, each of size:\t', self.config.RNN_SIZE // 2)
+        else:
+            print('Uni-directional LSTM of size:\t', self.config.RNN_SIZE)
+        print('Decoder size:\t\t\t', self.config.DECODER_SIZE)
+        print('Decoder layers:\t\t\t', self.config.NUM_DECODER_LAYERS)
+        print('Max path lengths:\t\t', self.config.MAX_PATH_LENGTH)
+        print('Max subtokens in a token:\t', self.config.MAX_NAME_PARTS)
+        print('Max target length:\t\t', self.config.MAX_TARGET_PARTS)
+        print('Embeddings dropout keep_prob:\t', self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
+        print('LSTM dropout keep_prob:\t', self.config.RNN_DROPOUT_KEEP_PROB)
+        print('============================')
 
     @staticmethod
     def calculate_results(true_positive, false_positive, false_negative):

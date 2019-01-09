@@ -20,7 +20,6 @@ if __name__ == '__main__':
     parser.add_argument('--predict', action='store_true')
     args = parser.parse_args()
     # TODO: patience parameter
-    # TODO: Save config
     config = Config.get_default_config(args)
 
     model = Model(config)

@@ -1,5 +1,0 @@
-a|b|a|a|a x|a,1|2|3,a|a b|b,2|x|4,b|b c|c,4,c|x d|d,x,d|d
-b|c a,1|2|3,a|a b|b,2|3|4,b d,4,d|d 
-c|d a,1|2|3,a|a a,2|3|4,b c|c,4,c 
-t a|a,1|2|3,a|a b|b,2|3|4,b|b c|c,4,c|c 
-d|a a|d,1|2|3,a|d b|c,2|4,b|b c,4,c|d 
