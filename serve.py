@@ -1,6 +1,6 @@
 import traceback
 
-from common import common
+from common import Common
 from extractor import Extractor
 import json
 from flask import Flask, request, Response, redirect
@@ -85,7 +85,7 @@ class HttpRequestHandler(MethodView):
     def predict(self, code_string):
         paths_input, ast_jsons, pc_info_dict = self.path_extractor.extract_paths(code_string)
         model_results = self.model.predict(paths_input)
-        parsed_results = common.parse_results(model_results, pc_info_dict, topk=SHOW_TOP_CONTEXTS, ast_jsons=ast_jsons)
+        parsed_results = Common.parse_results(model_results, pc_info_dict, topk=SHOW_TOP_CONTEXTS, ast_jsons=ast_jsons)
         if parsed_results is None:
             raise ValueError('Error')
         return parsed_results
@@ -130,7 +130,7 @@ class Server:
                 continue
             model_results = self.model.predict(predict_lines)
             
-            prediction_results = common.parse_results(model_results, pc_info_dict, ast_jsons=ast_objects, topk=SHOW_TOP_CONTEXTS)
+            prediction_results = Common.parse_results(model_results, pc_info_dict, ast_jsons=ast_objects, topk=SHOW_TOP_CONTEXTS)
             for index, method_prediction in prediction_results.items():
                 print('Original name:\t' + method_prediction.original_name)
                 if self.config.BEAM_WIDTH == 0:

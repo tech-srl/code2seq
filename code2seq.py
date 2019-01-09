@@ -1,4 +1,4 @@
-from common import  Config
+from config import Config
 from argparse import ArgumentParser
 from interactive_predict import InteractivePredictor
 from model import Model
@@ -19,16 +19,14 @@ if __name__ == '__main__':
                              'size.')
     parser.add_argument('--predict', action='store_true')
     args = parser.parse_args()
-
+    # TODO: patience parameter
+    # TODO: Save config
     config = Config.get_default_config(args)
 
     model = Model(config)
     print('Created model')
     if config.TRAIN_PATH:
         model.train()
-    if config.SAVE_W2V:
-        model.save_word2vec_format(config.SAVE_W2V)
-        print('Model saved in W2V text format in: %s' % config.SAVE_W2V)
     if config.TEST_PATH and not args.data_path:
         results, precision, recall, f1 = model.evaluate()
         print('Accuracy: ' + str(results))
@@ -36,4 +34,6 @@ if __name__ == '__main__':
     if args.predict:
         predictor = InteractivePredictor(config, model)
         predictor.predict()
+    if args.release and args.load_path:
+        model.evaluate(release=True)
     model.close_session()

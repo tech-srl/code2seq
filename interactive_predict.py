@@ -1,6 +1,6 @@
 import traceback
 
-from common import common
+from common import Common
 from extractor import Extractor
 
 SHOW_TOP_CONTEXTS = 10
@@ -41,7 +41,7 @@ class InteractivePredictor:
                 print(e)
                 continue
             results = self.model.predict(predict_lines)
-            prediction_results = common.parse_results(results, hash_to_string_dict, topk=SHOW_TOP_CONTEXTS)
+            prediction_results = Common.parse_results(results, hash_to_string_dict, topk=SHOW_TOP_CONTEXTS)
             for method_prediction in prediction_results:
                 print('Original name:\t' + method_prediction.original_name)
                 for name_prob_pair in method_prediction.predictions:

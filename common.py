@@ -1,92 +1,15 @@
-import re
 import json
+import re
+import subprocess
 import sys
 
-import subprocess
 
-
-class Config:
-    @staticmethod
-    def get_default_config(args):
-        config = Config()
-        config.NUM_EPOCHS = 5000
-        config.SAVE_EVERY_EPOCHS = 1
-        config.BATCH_SIZE = 512
-        config.TEST_BATCH_SIZE = 256
-        config.PREFETCH_NUM_BATCHES = 10
-        config.NUM_BATCHING_THREADS = 7
-        config.BATCH_QUEUE_SIZE = 100000
-        config.TRAIN_PATH = args.data_path
-        config.TEST_PATH = args.test_path
-        config.DATA_NUM_CONTEXTS = 1000
-        config.MAX_CONTEXTS = 200
-        config.WORDS_MIN_COUNT = 150
-        config.TARGET_WORDS_MIN_COUNT = 10
-        config.EMBEDDINGS_SIZE = 128
-        config.RNN_SIZE = 128 * 2
-        config.DECODER_SIZE = 320
-        config.WORDS_HISTOGRAM_PATH = args.words_histogram
-        config.TARGET_WORDS_HISTOGRAM_PATH = args.target_words_histogram
-        config.NODES_HISTOGRAM_PATH = args.nodes_histogram
-        config.SAVE_PATH = args.save_path
-        config.SAVE_W2V = args.save_w2v
-        config.LOAD_PATH = args.load_path
-        config.TRACE = args.trace
-        config.MAX_PATH_LENGTH = 8 + 1
-        config.MAX_NAME_PARTS = 5
-        config.MAX_TARGET_PARTS = 5
-        config.EMBEDDINGS_DROPOUT_KEEP_PROB = 0.75
-        config.RNN_DROPOUT_KEEP_PROB = 0.5
-        config.BIRNN = True
-        config.RANDOM_CONTEXTS = True
-        config.BEAM_WIDTH = 0
-        config.EXTRACTION_API_CHECK = False
-        return config
-
-    def __init__(self):
-        self.NUM_EPOCHS = 0
-        self.SAVE_EVERY_EPOCHS = 0
-        self.BATCH_SIZE = 0
-        self.TEST_BATCH_SIZE = 0
-        self.PREFETCH_NUM_BATCHES = 0
-        self.NUM_BATCHING_THREADS = 0
-        self.BATCH_QUEUE_SIZE = 0
-        self.TRAIN_PATH = ''
-        self.TEST_PATH = ''
-        self.DATA_NUM_CONTEXTS = 0
-        self.MAX_CONTEXTS = 0
-        self.WORDS_MIN_COUNT = 0
-        self.TARGET_WORDS_MIN_COUNT = 0
-        #self.PATHS_MIN_COUNT = 0
-        self.EMBEDDINGS_SIZE = 0
-        self.RNN_SIZE = 0
-        self.DECODER_SIZE = 0 
-        self.NUM_EXAMPLES = 0
-        self.WORDS_HISTOGRAM_PATH = ''
-        self.TARGET_WORDS_HISTOGRAM_PATH = ''
-        self.NODES_HISTOGRAM_PATH = ''
-        self.SAVE_PATH = ''
-        self.SAVE_W2V = ''
-        self.LOAD_PATH = ''
-        self.TRACE = ''
-        self.MAX_PATH_LENGTH = 0
-        self.MAX_NAME_PARTS = 0
-        self.MAX_TARGET_PARTS = 0
-        self.EMBEDDINGS_DROPOUT_KEEP_PROB = 0
-        self.RNN_DROPOUT_KEEP_PROB = 0
-        self.BIRNN = False
-        self.RANDOM_CONTEXTS = True
-        self.BEAM_WIDTH = 1
-        self.EXTRACTION_API_CHECK = False
-
-class common:
-    GIV = 'giv'
-    INF = 'inf'
-    noSuchWord = "NoSuchWord"
-    blank_target_padding = 'BLANK'
+class Common:
     internal_delimiter = '|'
-    PRED_START = '<S>'
-    PRED_END = '</S>'
+    SOS = '<S>'
+    EOS = '</S>'
+    PAD = '<PAD>'
+    UNK = '<UNK>'
 
     @staticmethod
     def normalize_word(word):
@@ -115,10 +38,10 @@ class common:
                 for var_object in assign:
                     name = ''
                     infer_type = ''
-                    if common.INF in var_object:
-                        name, infer_type = var_object[common.INF], common.INF
-                    elif common.GIV in var_object:
-                        name, infer_type = var_object[common.GIV], common.GIV
+                    if Common.INF in var_object:
+                        name, infer_type = var_object[Common.INF], Common.INF
+                    elif Common.GIV in var_object:
+                        name, infer_type = var_object[Common.GIV], Common.GIV
                     id = var_object['v']
                     id_to_var[id] = (name, infer_type)
                 for feature in query:
@@ -142,104 +65,39 @@ class common:
                 programs.append(current_program)
         return programs
 
+
     @staticmethod
-    def load_vocab_from_histogram(path, min_count=0, start_from=0, add_values=[]):
+    def load_histogram(path, max_size=None):
+        histogram = {}
         with open(path, 'r') as file:
-            word_to_index = {}
-            index_to_word = {}
-            next_index = start_from
-            for value in add_values:
-                word_to_index[value] = next_index
-                index_to_word[next_index] = value
-                next_index += 1
-            for line in file:
-                line_values = line.rstrip().split(' ')
-                if len(line_values) != 2:
+            for line in file.readlines():
+                parts = line.split(' ')
+                if not len(parts) == 2:
                     continue
-                word = line_values[0]
-                count = int(line_values[1])
-                if count < min_count:
-                    continue
-                if word in word_to_index:
-                    continue
-                word_to_index[word] = next_index
-                index_to_word[next_index] = word
-                next_index += 1
-        return word_to_index, index_to_word, next_index - start_from
+                histogram[parts[0]] = int(parts[1])
+        sorted_histogram = [(k, histogram[k]) for k in sorted(histogram, key=histogram.get, reverse=True)]
+        return dict(sorted_histogram[:max_size])
+
 
     @staticmethod
-    def load_json(json_file):
-        data = []
-        with open(json_file, 'r') as file:
-            for line in file:
-                current_program = common.process_single_json_line(line)
-                if current_program is None:
-                    continue
-                for element, scope in current_program.items():
-                    data.append((element, scope))
-        return data
-
-    @staticmethod
-    def load_json_streaming(json_file):
-        with open(json_file, 'r') as file:
-            for line in file:
-                current_program = common.process_single_json_line(line)
-                if current_program is None:
-                    continue
-                for element, scope in current_program.items():
-                    yield (element, scope)
-
-    @staticmethod
-    def process_single_json_line(line):
-        line = line.rstrip('\n')
-        id_to_var, current_program = {}, {}
-        try:
-            single_program_object = json.loads(line)
-        except ValueError:
-            print('Bad JSON: ' + str(line), file=sys.stderr)
-            return None
-        assign = single_program_object['assign']
-        query = single_program_object['query']
-        for var_object in assign:
-            name1 = ''
-            infer_type = ''
-            if common.INF in var_object:
-                name1, infer_type = var_object[common.INF], common.INF
-            elif common.GIV in var_object:
-                name1, infer_type = var_object[common.GIV], common.GIV
-            id = var_object['v']
-            id_to_var[id] = (name1, infer_type)
-        for feature in query:
-            if not ('a' in feature and 'b' in feature and 'f2' in feature):
-                continue
-            try:
-                name1, type1 = id_to_var[feature['a']]
-                name2, type2 = id_to_var[feature['b']]
-            except KeyError:
-                print('Key error')
-                print(line)
-                sys.exit(0)
-            if feature['a'] == feature['b']:
-                name2 = 'self'
-            path = feature['f2']
-            context = str(path) + ',' + name2
-            if (name1, type1) in current_program:
-                current_program[(name1, type1)].append(context)
-            else:
-                current_program[(name1, type1)] = [context]
-        return current_program
-
-    @staticmethod
-    def save_word2vec_file(file, vocab_size, dimension, index_to_word, vectors):
-        file.write('%d %d\n' % (vocab_size, dimension))
-        for i in range(1,vocab_size+1):
-            if i in index_to_word:
-                file.write(index_to_word[i] + ' ')
-                file.write(' '.join(map(str, vectors[i])) + '\n')
-
+    def load_vocab_from_dict(word_to_count, add_values=[], max_size=None):
+        word_to_index, index_to_word = {}, {}
+        current_index = 0
+        for value in add_values:
+            word_to_index[value] = current_index
+            index_to_word[current_index] = value
+            current_index += 1
+        sorted_counts = [(k, word_to_count[k]) for k in sorted(word_to_count, key=word_to_count.get, reverse=True)]
+        limited_sorted = dict(sorted_counts[:max_size])
+        for word, count in limited_sorted.items():
+            word_to_index[word] = current_index
+            index_to_word[current_index] = word
+            current_index += 1
+        return word_to_index, index_to_word, current_index        
+        
     @staticmethod
     def calculate_max_contexts(file):
-        contexts_per_word = common.process_test_input(file)
+        contexts_per_word = Common.process_test_input(file)
         return max(
             [max(l, default=0) for l in [[len(contexts) for contexts in prog.values()] for prog in contexts_per_word]],
             default=0)
@@ -250,15 +108,15 @@ class common:
 
     @staticmethod
     def binary_to_string_list(binary_string_list):
-        return [common.binary_to_string(w) for w in binary_string_list]
+        return [Common.binary_to_string(w) for w in binary_string_list]
 
     @staticmethod
     def binary_to_string_matrix(binary_string_matrix):
-        return [common.binary_to_string_list(l) for l in binary_string_matrix]
+        return [Common.binary_to_string_list(l) for l in binary_string_matrix]
     
     @staticmethod
     def binary_to_string_3d(binary_string_tensor):
-        return [common.binary_to_string_matrix(l) for l in binary_string_tensor]
+        return [Common.binary_to_string_matrix(l) for l in binary_string_tensor]
 
     @staticmethod
     def load_file_lines(path):
@@ -288,13 +146,11 @@ class common:
 
     @staticmethod
     def legal_method_names_checker(name):
-        # This allows legal method names such as: "_4" (it's legal and common)
-        return not name in [common.noSuchWord, common.blank_target_padding, common.PRED_END] # and re.match('^_*[a-zA-Z0-9]+$', name.replace(common.internalDelimiter, ''))
-        #return name != common.noSuchWord and re.match('^[a-zA-Z]+$', name)
+        return not name in [Common.UNK, Common.PAD, Common.EOS] # and re.match('^_*[a-zA-Z0-9]+$', name.replace(common.internalDelimiter, ''))
 
     @staticmethod
     def filter_impossible_names(top_words):
-        result = list(filter(common.legal_method_names_checker, top_words))
+        result = list(filter(Common.legal_method_names_checker, top_words))
         return result
     
     @staticmethod
@@ -312,7 +168,7 @@ class common:
             #original_name, top_suggestions = list(single_method)
             current_method_prediction_results = PredictionResults(original_name, ast)
             if attention_per_context is not None:
-                word_attention_pairs = [(word, attention) for word, attention in zip(top_suggestions, attention_per_context) if common.legal_method_names_checker(word)]
+                word_attention_pairs = [(word, attention) for word, attention in zip(top_suggestions, attention_per_context) if Common.legal_method_names_checker(word)]
                 if len(word_attention_pairs) == 0:
                     current_method_prediction_results.append_prediction('unknown', [])
                 for predicted_word, attention_timestep in word_attention_pairs:
@@ -325,7 +181,7 @@ class common:
                     current_method_prediction_results.append_prediction(predicted_word, current_timestep_paths)
             else:
                  for predicted_seq in top_suggestions:
-                     filtered_seq = [word for word in predicted_seq if common.legal_method_names_checker(word)]
+                     filtered_seq = [word for word in predicted_seq if Common.legal_method_names_checker(word)]
                      current_method_prediction_results.append_prediction(filtered_seq, None)                   
 
             prediction_results[results_counter] = current_method_prediction_results

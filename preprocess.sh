@@ -15,11 +15,11 @@
 #   recommended to use a multi-core machine for the preprocessing 
 #   step and set this value to the number of cores.
 # PYTHON - python3 interpreter alias.
-TRAIN_DIR=my_train_dir
-VAL_DIR=my_val_dir
-TEST_DIR=my_test_dir
+TRAIN_DIR=JavaExtractor/JPredict/src/main/java/JavaExtractor/Common
+VAL_DIR=JavaExtractor/JPredict/src/main/java/JavaExtractor/Common
+TEST_DIR=JavaExtractor/JPredict/src/main/java/JavaExtractor/Common
 DATASET_NAME=my_dataset
-MAX_CONTEXTS=1000
+MAX_CONTEXTS=5
 SUBTOKEN_VOCAB_SIZE=186277
 TARGET_VOCAB_SIZE=26347
 NUM_THREADS=64
@@ -56,7 +56,7 @@ cat ${TRAIN_DATA_FILE} | cut -d' ' -f2- | tr ' ' '\n' | cut -d',' -f2 | tr '|' '
 ${PYTHON} preprocess.py --train_data ${TRAIN_DATA_FILE} --test_data ${TEST_DATA_FILE} --val_data ${VAL_DATA_FILE} \
   --max_contexts ${MAX_CONTEXTS} --subtoken_vocab_size ${SUBTOKEN_VOCAB_SIZE} \
   --target_vocab_size ${TARGET_VOCAB_SIZE} --subtoken_histogram ${ORIGIN_HISTOGRAM_FILE} \
-  --path_histogram ${NODE_HISTOGRAM_FILE} --target_histogram ${TARGET_HISTOGRAM_FILE} --output_name data/${DATASET_NAME}/${DATASET_NAME}
+  --node_histogram ${NODE_HISTOGRAM_FILE} --target_histogram ${TARGET_HISTOGRAM_FILE} --output_name data/${DATASET_NAME}/${DATASET_NAME}
     
 # If all went well, the raw data files can be deleted, because preprocess.py creates new files 
 # with truncated and padded number of paths for each example.

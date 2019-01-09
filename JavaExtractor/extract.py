@@ -91,5 +91,7 @@ if __name__ == '__main__':
         os.system(command)
     elif args.dir is not None:
         subdirs = get_immediate_subdirectories(args.dir)
+        if len(subdirs) == 0:
+            subdirs = [args.dir]
         ExtractFeaturesForDirsList(args, subdirs)
     
