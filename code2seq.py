@@ -9,7 +9,7 @@ if __name__ == '__main__':
         help="path to preprocessed dataset", required=False)
     parser.add_argument("-te", "--test", dest="test_path",
         help="path to test file", metavar="FILE", required=False)
-    
+
     parser.add_argument("-s", "--save", dest="save_path",
                         help="path to save file", metavar="FILE", required=False)
     parser.add_argument("-l", "--load", dest="load_path",
@@ -19,7 +19,6 @@ if __name__ == '__main__':
                              'size.')
     parser.add_argument('--predict', action='store_true')
     args = parser.parse_args()
-    # TODO: patience parameter
     config = Config.get_default_config(args)
 
     model = Model(config)

@@ -4,6 +4,7 @@ class Config:
         config = Config()
         config.NUM_EPOCHS = 3000
         config.SAVE_EVERY_EPOCHS = 100
+        config.PATIENCE = 200
         config.BATCH_SIZE = 32
         config.TEST_BATCH_SIZE = 256
         config.PREFETCH_NUM_BATCHES = 10
@@ -30,7 +31,6 @@ class Config:
         config.RANDOM_CONTEXTS = True
         config.BEAM_WIDTH = 0
         config.USE_NESTEROV = False
-        config.PATIENCE = 5
         config.RELEASE = args.release
         return config
     
@@ -46,6 +46,7 @@ class Config:
     def __init__(self):
         self.NUM_EPOCHS = 0
         self.SAVE_EVERY_EPOCHS = 0
+        self.PATIENCE = 0
         self.BATCH_SIZE = 0
         self.TEST_BATCH_SIZE = 0
         self.PREFETCH_NUM_BATCHES = 0
@@ -72,5 +73,4 @@ class Config:
         self.RANDOM_CONTEXTS = True
         self.BEAM_WIDTH = 1
         self.USE_NESTEROV = True
-        self.PATIENCE = 0
         self.RELEASE = False

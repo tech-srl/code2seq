@@ -59,6 +59,11 @@ class Model:
 
         batch_num = 0
         sum_loss = 0
+        best_f1 = 0
+        best_epoch = 0
+        best_f1_precision = 0
+        best_f1_recall = 0
+        epochs_no_improve = 0
 
         self.queue_thread = reader.Reader(subtoken_to_index=self.subtoken_to_index,
                                           node_to_index=self.node_to_index,
@@ -93,16 +98,29 @@ class Model:
             except tf.errors.OutOfRangeError:
                 epoch_num = iteration * self.config.SAVE_EVERY_EPOCHS
                 print('Finished %d epochs' % self.config.SAVE_EVERY_EPOCHS)
-                save_target = self.config.SAVE_PATH + '_iter' + str(epoch_num)
-                self.save_model(self.sess, save_target)
-                print('Saved after %d epochs in: %s' % (epoch_num, save_target))
                 results, precision, recall, f1 = self.evaluate()
                 print('Accuracy after %d epochs: %f' % (epoch_num, results))
                 print('After ' + str(epoch_num) + ' epochs: Precision: ' + str(precision) + ', recall: ' + str(
                     recall) + ', F1: ' + str(f1))
+                if f1 > best_f1:
+                    best_f1 = f1
+                    best_f1_precision = precision
+                    best_f1_recall = recall
+                    best_epoch = epoch_num
+                    epochs_no_improve = 0
+                    save_target = self.config.SAVE_PATH + '_iter' + str(epoch_num)
+                    self.save_model(self.sess, save_target)
+                    print('Saved after %d epochs in: %s' % (epoch_num, save_target))
+                else:
+                    epochs_no_improve += self.config.SAVE_EVERY_EPOCHS
+                    if epochs_no_improve >= self.config.PATIENCE:
+                        print('Not improved for %d epochs, stopping training' % self.config.PATIENCE)
+                        print('Best scores - epoch %d: ' % best_epoch)
+                        print('Precision: %f, recall: %f, F1: %f' % (best_f1_precision, best_f1_recall, best_f1))
+                        return
 
         if self.config.SAVE_PATH:
-            self.save_model(self.sess, self.config.SAVE_PATH)
+            self.save_model(self.sess, self.config.SAVE_PATH + '.final')
             print('Model saved in file: %s' % self.config.SAVE_PATH)
 
         elapsed = int(time.time() - start_time)
@@ -136,11 +154,13 @@ class Model:
                 print('Releasing model, output model: %s' % release_name )
                 self.saver.save(self.sess, release_name)
                 return None
-        ref_file_name = (os.path.dirname(self.config.SAVE_PATH) if self.config.SAVE_PATH else 
-                         self.config.LOAD_PATH) + '_ref.txt'
-        predicted_file_name = (os.path.dirname(self.config.SAVE_PATH) if self.config.SAVE_PATH else 
-                               self.config.LOAD_PATH) + '_pred.txt'
-        with open('log.txt', 'w') as output_file, open(ref_file_name, 'w') as ref_file, open(predicted_file_name,
+        model_dirname = os.path.dirname(self.config.SAVE_PATH if self.config.SAVE_PATH else self.config.LOAD_PATH)
+        ref_file_name = model_dirname + '/ref.txt'
+        predicted_file_name = model_dirname + '/pred.txt'
+        if not os.path.exists(model_dirname):
+            os.makedirs(model_dirname)
+        
+        with open(model_dirname + '/log.txt', 'w') as output_file, open(ref_file_name, 'w') as ref_file, open(predicted_file_name,
                                                                                              'w') as pred_file:
             num_correct_predictions = 0
             total_predictions = 0
