@@ -22,7 +22,7 @@ class Model:
         self.eval_placeholder = None
         self.predict_placeholder = None
         self.eval_predicted_indices_op, self.eval_top_values_op, self.eval_true_target_strings_op, self.eval_topk_values = None, None, None, None
-        self.predict_top_words_op, self.predict_top_values_op, self.predict_original_names_op = None, None, None
+        self.predict_top_indices_op, self.predict_top_values_op, self.predict_target_index_op = None, None, None
         self.subtoken_to_index = None
 
         if config.LOAD_PATH:
@@ -620,8 +620,8 @@ class Model:
                                                config=self.config, is_evaluating=True)
             self.predict_placeholder = tf.placeholder(tf.string)
             reader_output = self.predict_queue.process_from_placeholder(self.predict_placeholder)
-            reader_output = [tf.expand_dims(tensor, 0) for tensor in reader_output]
-            self.predict_top_words_op, self.predict_top_values_op, self.predict_original_names_op, \
+            reader_output = {key:tf.expand_dims(tensor, 0) for key,tensor in reader_output.items()}
+            self.predict_top_indices_op, self.predict_top_values_op, self.predict_target_index_op, \
             self.attention_weights_op = \
                 self.build_test_graph(reader_output)
             self.predict_source_string = reader_output[reader.PATH_SOURCE_STRINGS_KEY]
@@ -635,7 +635,7 @@ class Model:
         results = []
         for line in predict_data_lines:
             predicted_strings, top_scores, original_name, attention_weights, source_strings, path_strings, target_strings = self.sess.run(
-                [self.predict_top_words_op, self.predict_top_values_op, self.predict_original_names_op,
+                [self.predict_top_indices_op, self.predict_top_values_op, self.predict_target_index_op,
                  self.attention_weights_op,
                  self.predict_source_string, self.predict_path_string, self.predict_path_target_string],
                 feed_dict={self.predict_placeholder: line})

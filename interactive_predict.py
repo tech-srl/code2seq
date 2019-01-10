@@ -6,7 +6,7 @@ from extractor import Extractor
 SHOW_TOP_CONTEXTS = 10
 MAX_PATH_LENGTH = 8
 MAX_PATH_WIDTH = 2
-JAR_PATH = 'JavaExtractor/JPredict/target/JavaExtractor-0.0.1-SNAPSHOT.jar'
+EXTRACTION_API='https://ff655m4ut8.execute-api.us-east-1.amazonaws.com/production/extractmethods'
 
 
 class InteractivePredictor:
@@ -16,32 +16,29 @@ class InteractivePredictor:
         model.predict([])
         self.model = model
         self.config = config
-        self.path_extractor = Extractor(config,
-                                        jar_path=JAR_PATH,
-                                        max_path_length=MAX_PATH_LENGTH,
-                                        max_path_width=MAX_PATH_WIDTH)
+        self.path_extractor = Extractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=2)
 
     def read_file(self, input_filename):
         with open(input_filename, 'r') as file:
             return file.readlines()
-
+        
     def predict(self):
         input_filename = 'Input.java'
-        print('Starting interactive prediction...')
+        print('Serving')
         while True:
-            print(
-                'Modify the file: "%s" and press any key when ready, or "q" / "quit" / "exit" to exit' % input_filename)
+            print('Modify the file: "' + input_filename + '" and press any key when ready, or "q" / "exit" to exit')
             user_input = input()
             if user_input.lower() in self.exit_keywords:
                 print('Exiting...')
                 return
+            user_input = ' '.join(self.read_file(input_filename))
             try:
-                predict_lines, pc_info_dict = self.path_extractor.extract_paths(input_filename)
-            except ValueError as e:
-                print(e)
+                predict_lines, pc_info_dict = self.path_extractor.extract_paths(user_input)
+            except ValueError:
                 continue
-            results = self.model.predict(predict_lines)
-            prediction_results = Common.parse_results(results, pc_info_dict, topk=SHOW_TOP_CONTEXTS)
+            model_results = self.model.predict(predict_lines)
+            
+            prediction_results = Common.parse_results(model_results, pc_info_dict, topk=SHOW_TOP_CONTEXTS)
             for index, method_prediction in prediction_results.items():
                 print('Original name:\t' + method_prediction.original_name)
                 if self.config.BEAM_WIDTH == 0:
