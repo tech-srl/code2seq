@@ -1,6 +1,7 @@
 package JavaExtractor;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -53,6 +54,10 @@ public class ExtractFeaturesTask implements Callable<Void> {
 
 	public ArrayList<ProgramFeatures> extractSingleFile() throws ParseException, IOException {
 		String code = null;
+
+		if (Files.lines(filePath, Charset.defaultCharset()).count() > m_CommandLineValues.MaxFileLength) {
+			return new ArrayList<>();
+		}
 		try {
 			code = new String(Files.readAllBytes(filePath));
 		} catch (IOException e) {

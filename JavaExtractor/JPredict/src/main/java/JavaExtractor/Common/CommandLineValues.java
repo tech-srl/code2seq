@@ -28,7 +28,10 @@ public class CommandLineValues {
 	public int MinCodeLength = 1;
 
 	@Option(name = "--max_code_len", required = false)
-	public int MaxCodeLength = 10000;
+	public int MaxCodeLength = 100;
+
+	@Option(name = "--max_file_length", required = false)
+	public int MaxFileLength = 10000;
 
 	@Option(name = "--pretty_print", required = false)
 	public boolean PrettyPrint = false;
