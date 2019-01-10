@@ -10,32 +10,28 @@ class Extractor:
 
     def extract_paths(self, path):
         command = ['java', '-cp', self.jar_path, 'JavaExtractor.App', '--max_path_length',
-                   str(self.max_path_length), '--max_path_width', str(self.max_path_width), '--file', path, '--no_hash']
+                   str(self.max_path_length), '--max_path_width', str(self.max_path_width), '--file', path]
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = process.communicate()
         output = out.decode().splitlines()
         if len(output) == 0:
             err = err.decode()
             raise ValueError(err)
-        hash_to_string_dict = {}
+        
         result = []
+        pc_dict_info = {}
         for i, line in enumerate(output):
-            parts = line.rstrip().split(' ')
-            method_name = parts[0]
+            method_name = single_method['target']
             current_result_line_parts = [method_name]
-            contexts = parts[1:]
-            for context in contexts[:self.config.MAX_CONTEXTS]:
-                context_parts = context.split(',')
-                context_word1 = context_parts[0]
-                context_path = context_parts[1]
-                context_word2 = context_parts[2]
-                hashed_path = str(self.java_string_hashcode(context_path))
-                hash_to_string_dict[hashed_path] = context_path
-                current_result_line_parts += ['%s,%s,%s' % (context_word1, hashed_path, context_word2)]
-            space_padding = ' ' * (self.config.MAX_CONTEXTS - len(contexts))
+            contexts = single_method['paths']
+            for context in contexts[:self.config.DATA_NUM_CONTEXTS]:
+                pc_info = PathContextInformation(context)
+                current_result_line_parts += [str(pc_info)]
+                pc_info_dict[(pc_info.word1, pc_info.shortPath, pc_info.word2)] = pc_info
+            space_padding = ' ' * (self.config.DATA_NUM_CONTEXTS - len(contexts))
             result_line = ' '.join(current_result_line_parts) + space_padding
             result.append(result_line)
-        return result, hash_to_string_dict
+        return result, pc_info_dict
 
     @staticmethod
     def java_string_hashcode(s):

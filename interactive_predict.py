@@ -36,17 +36,22 @@ class InteractivePredictor:
                 print('Exiting...')
                 return
             try:
-                predict_lines, hash_to_string_dict = self.path_extractor.extract_paths(input_filename)
+                predict_lines, pc_info_dict = self.path_extractor.extract_paths(input_filename)
             except ValueError as e:
                 print(e)
                 continue
             results = self.model.predict(predict_lines)
-            prediction_results = Common.parse_results(results, hash_to_string_dict, topk=SHOW_TOP_CONTEXTS)
-            for method_prediction in prediction_results:
+            prediction_results = Common.parse_results(results, pc_info_dict, topk=SHOW_TOP_CONTEXTS)
+            for index, method_prediction in prediction_results.items():
                 print('Original name:\t' + method_prediction.original_name)
-                for name_prob_pair in method_prediction.predictions:
-                    print('\t(%f) predicted: %s' % (name_prob_pair['probability'], name_prob_pair['name']))
-                print('Attention:')
-                for attention_obj in method_prediction.attention_paths:
-                    print('%f\tcontext: %s,%s,%s' % (
-                    attention_obj['score'], attention_obj['token1'], attention_obj['path'], attention_obj['token2']))
+                if self.config.BEAM_WIDTH == 0:
+                    print('Predicted:\t%s' % [step.prediction for step in method_prediction.predictions])
+                    for timestep, single_timestep_prediction in enumerate(method_prediction.predictions):
+                            print('Attention:')
+                            print('TIMESTEP: %d\t: %s' % (timestep, single_timestep_prediction.prediction))
+                            for attention_obj in single_timestep_prediction.attention_paths:
+                                print('%f\tcontext: %s,%s,%s' % (attention_obj['score'], attention_obj['token1']['name'], attention_obj['path'], attention_obj['token2']['name']))
+                else:
+                    print('Predicted:')
+                    for predicted_seq in method_prediction.predictions:
+                        print('\t%s' % predicted_seq.prediction)
