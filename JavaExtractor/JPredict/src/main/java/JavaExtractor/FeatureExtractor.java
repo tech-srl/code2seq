@@ -36,7 +36,7 @@ public class FeatureExtractor {
 
 	public ArrayList<ProgramFeatures> extractFeatures(String code) throws ParseException, IOException {
 		CompilationUnit m_CompilationUnit = parseFileWithRetries(code);
-		FunctionVisitor functionVisitor = new FunctionVisitor();
+		FunctionVisitor functionVisitor = new FunctionVisitor(m_CommandLineValues);
 
 		functionVisitor.visit(m_CompilationUnit, null);
 
@@ -75,9 +75,6 @@ public class FeatureExtractor {
 	public ArrayList<ProgramFeatures> generatePathFeatures(ArrayList<MethodContent> methods) {
 		ArrayList<ProgramFeatures> methodsFeatures = new ArrayList<>();
 		for (MethodContent content : methods) {
-			if (content.getLength() < m_CommandLineValues.MinCodeLength
-					|| content.getLength() > m_CommandLineValues.MaxCodeLength)
-				continue;
 			ProgramFeatures singleMethodFeatures = generatePathFeaturesForFunction(content);
 			if (!singleMethodFeatures.isEmpty()) {
 				methodsFeatures.add(singleMethodFeatures);

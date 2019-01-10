@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import JavaExtractor.Common.CommandLineValues;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -14,6 +15,11 @@ import JavaExtractor.Common.MethodContent;
 @SuppressWarnings("StringEquality")
 public class FunctionVisitor extends VoidVisitorAdapter<Object> {
 	private ArrayList<MethodContent> m_Methods = new ArrayList<>();
+	private CommandLineValues m_CommandLineValues;
+
+	public FunctionVisitor(CommandLineValues commandLineValues) {
+		this.m_CommandLineValues = commandLineValues;
+	}
 
 	@Override
 	public void visit(MethodDeclaration node, Object arg) {
@@ -35,7 +41,10 @@ public class FunctionVisitor extends VoidVisitorAdapter<Object> {
 		}
 
 		if (node.getBody() != null) {
-			m_Methods.add(new MethodContent(leaves, splitName, getMethodLength(node.getBody().toString())));
+			long methodLength = getMethodLength(node.getBody().toString());
+			if (methodLength >= m_CommandLineValues.MinCodeLength && methodLength <= m_CommandLineValues.MaxCodeLength) {
+				m_Methods.add(new MethodContent(leaves, splitName, methodLength));
+			}
 		}
 	}
 
