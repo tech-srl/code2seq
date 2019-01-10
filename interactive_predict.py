@@ -47,7 +47,7 @@ class InteractivePredictor:
                             print('Attention:')
                             print('TIMESTEP: %d\t: %s' % (timestep, single_timestep_prediction.prediction))
                             for attention_obj in single_timestep_prediction.attention_paths:
-                                print('%f\tcontext: %s,%s,%s' % (attention_obj['score'], attention_obj['token1']['name'], attention_obj['path'], attention_obj['token2']['name']))
+                                print('%f\tcontext: %s,%s,%s' % (attention_obj['score'], attention_obj['token1'], attention_obj['path'], attention_obj['token2']))
                 else:
                     print('Predicted:')
                     for predicted_seq in method_prediction.predictions:

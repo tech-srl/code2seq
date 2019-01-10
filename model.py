@@ -22,7 +22,7 @@ class Model:
         self.eval_placeholder = None
         self.predict_placeholder = None
         self.eval_predicted_indices_op, self.eval_top_values_op, self.eval_true_target_strings_op, self.eval_topk_values = None, None, None, None
-        self.predict_top_indices_op, self.predict_top_values_op, self.predict_target_index_op = None, None, None
+        self.predict_top_indices_op, self.predict_top_scores_op, self.predict_target_strings_op = None, None, None
         self.subtoken_to_index = None
 
         if config.LOAD_PATH:
@@ -621,12 +621,12 @@ class Model:
             self.predict_placeholder = tf.placeholder(tf.string)
             reader_output = self.predict_queue.process_from_placeholder(self.predict_placeholder)
             reader_output = {key:tf.expand_dims(tensor, 0) for key,tensor in reader_output.items()}
-            self.predict_top_indices_op, self.predict_top_values_op, self.predict_target_index_op, \
-            self.attention_weights_op = \
+            self.predict_top_indices_op, self.predict_top_scores_op, _, self.attention_weights_op = \
                 self.build_test_graph(reader_output)
             self.predict_source_string = reader_output[reader.PATH_SOURCE_STRINGS_KEY]
             self.predict_path_string = reader_output[reader.PATH_STRINGS_KEY]
             self.predict_path_target_string = reader_output[reader.PATH_TARGET_STRINGS_KEY]
+            self.predict_target_strings_op = reader_output[reader.TARGET_STRING_KEY]
 
             self.initialize_session_variables(self.sess)
             self.saver = tf.train.Saver()
@@ -634,35 +634,35 @@ class Model:
 
         results = []
         for line in predict_data_lines:
-            predicted_strings, top_scores, original_name, attention_weights, source_strings, path_strings, target_strings = self.sess.run(
-                [self.predict_top_indices_op, self.predict_top_values_op, self.predict_target_index_op,
+            predicted_indices, top_scores, true_target_strings, attention_weights, path_source_string, path_strings, path_target_string = self.sess.run(
+                [self.predict_top_indices_op, self.predict_top_scores_op, self.predict_target_strings_op,
                  self.attention_weights_op,
                  self.predict_source_string, self.predict_path_string, self.predict_path_target_string],
                 feed_dict={self.predict_placeholder: line})
 
-            top_scores = np.squeeze(top_scores)
-            source_strings = np.squeeze(source_strings)
-            path_strings = np.squeeze(path_strings)
-            target_strings = np.squeeze(target_strings)
-            predicted_strings = np.squeeze(predicted_strings, axis=0)
+            top_scores = np.squeeze(top_scores, axis=0)
+            path_source_string = path_source_string.reshape((-1))
+            path_strings = path_strings.reshape((-1))
+            path_target_string = path_target_string.reshape((-1))
+            predicted_indices = np.squeeze(predicted_indices, axis=0)
+            true_target_strings = Common.binary_to_string(true_target_strings[0])
 
             if self.config.BEAM_WIDTH > 0:
-                predicted_strings = Common.binary_to_string_matrix(predicted_strings)  # (batch, target_length, top-k)
+                predicted_strings = [[self.index_to_target[sugg] for sugg in timestep] 
+                                      for timestep in predicted_indices] # (target_length, top-k)  
                 predicted_strings = [list(map(list, zip(*batch))) for batch in
-                                     predicted_strings]  # (batch, top-k, target_length)
+                                     predicted_strings]  # (top-k, target_length)
                 top_scores = [np.exp(np.sum(s, 0)) for s in top_scores]
-                # else:
-                # predicted_strings = [[sugg] for sugg in common.binary_to_string_list(predicted_strings)] # (batch, top-1, target_length)
-            original_name = Common.binary_to_string(original_name[0])
-            predicted_strings = Common.binary_to_string_list(predicted_strings)
+            else:
+                predicted_strings = [self.index_to_target[idx] 
+                                      for idx in predicted_indices] # (batch, target_length)  
 
             attention_per_path = None
             if self.config.BEAM_WIDTH == 0:
-                attention_per_path = self.get_attention_per_path(source_strings, path_strings, target_strings,
+                attention_per_path = self.get_attention_per_path(path_source_string, path_strings, path_target_string,
                                                                  attention_weights)
 
-            # original_names = [w for l in original_names for w in l]
-            results.append((original_name, predicted_strings, top_scores, attention_per_path))
+            results.append((true_target_strings, predicted_strings, top_scores, attention_per_path))
         return results
 
     def get_attention_per_path(self, source_strings, path_strings, target_strings, attention_weights):

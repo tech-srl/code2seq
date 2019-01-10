@@ -167,7 +167,7 @@ class Common:
             current_method_prediction_results = PredictionResults(original_name)
             if attention_per_context is not None:
                 word_attention_pairs = [(word, attention) for word, attention in
-                                        zip(top_suggestions[0], attention_per_context) if
+                                        zip(top_suggestions, attention_per_context) if
                                         Common.legal_method_names_checker(word)]
                 for predicted_word, attention_timestep in word_attention_pairs:
                     current_timestep_paths = []
@@ -220,10 +220,8 @@ class SingleTimeStepPrediction:
             for attention_score, pc_info in attention_paths:
                 path_context_dict = {'score': attention_score,
                                      'path': pc_info.longPath,
-                                     'token1': self.create_token_dict(pc_info.word1, pc_info.word1NodeId),
-                                     'token2': self.create_token_dict(pc_info.word2, pc_info.word2NodeId)}
+                                     'token1': pc_info.token1,
+                                     'token2': pc_info.token2}
                 paths_with_scores.append(path_context_dict)
             self.attention_paths = paths_with_scores
 
-    def create_token_dict(self, name, node_id):
-        return {'name': name, 'node_id': node_id}

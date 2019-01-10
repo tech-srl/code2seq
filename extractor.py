@@ -33,7 +33,7 @@ class Extractor:
             for context in contexts[:self.config.DATA_NUM_CONTEXTS]:
                 pc_info = PathContextInformation(context)
                 current_result_line_parts += [str(pc_info)]
-                pc_info_dict[(pc_info.token1, pc_info.shortPath, pc_info.token1)] = pc_info
+                pc_info_dict[(pc_info.token1, pc_info.shortPath, pc_info.token2)] = pc_info
             space_padding = ' ' * (self.config.DATA_NUM_CONTEXTS - len(contexts))
             result_line = ' '.join(current_result_line_parts) + space_padding
             result.append(result_line)
