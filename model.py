@@ -650,8 +650,7 @@ class Model:
             if self.config.BEAM_WIDTH > 0:
                 predicted_strings = [[self.index_to_target[sugg] for sugg in timestep] 
                                       for timestep in predicted_indices] # (target_length, top-k)  
-                predicted_strings = [list(map(list, zip(*batch))) for batch in
-                                     predicted_strings]  # (top-k, target_length)
+                predicted_strings = list(map(list, zip(*predicted_strings))) # (top-k, target_length)
                 top_scores = [np.exp(np.sum(s, 0)) for s in top_scores]
             else:
                 predicted_strings = [self.index_to_target[idx] 
