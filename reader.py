@@ -7,7 +7,7 @@ TARGET_STRING_KEY = 'TARGET_STRING_KEY'
 TARGET_LENGTH_KEY = 'TARGET_LENGTH_KEY'
 PATH_SOURCE_INDICES_KEY = 'PATH_SOURCE_INDICES_KEY'
 NODE_INDICES_KEY = 'NODES_INDICES_KEY'
-PATH_TARGET_INDICES_KEY = 'PATH_TARGET_INDICES_KEY' 
+PATH_TARGET_INDICES_KEY = 'PATH_TARGET_INDICES_KEY'
 VALID_CONTEXT_MASK_KEY = 'VALID_CONTEXT_MASK_KEY'
 PATH_SOURCE_LENGTHS_KEY = 'PATH_SOURCE_LENGTHS_KEY'
 PATH_LENGTHS_KEY = 'PATH_LENGTHS_KEY'
@@ -15,6 +15,7 @@ PATH_TARGET_LENGTHS_KEY = 'PATH_TARGET_LENGTHS_KEY'
 PATH_SOURCE_STRINGS_KEY = 'PATH_SOURCE_STRINGS_KEY'
 PATH_STRINGS_KEY = 'PATH_STRINGS_KEY'
 PATH_TARGET_STRINGS_KEY = 'PATH_TARGET_STRINGS_KEY'
+
 
 class Reader:
     class_subtoken_table = None
@@ -185,11 +186,12 @@ class Reader:
 
 
 if __name__ == '__main__':
-    target_word_to_index = {Common.PAD: 0, Common.UNK: 1, Common.SOS: 2, 
+    target_word_to_index = {Common.PAD: 0, Common.UNK: 1, Common.SOS: 2,
                             'a': 3, 'b': 4, 'c': 5, 'd': 6, 't': 7}
     subtoken_to_index = {Common.PAD: 0, Common.UNK: 1, 'a': 2, 'b': 3, 'c': 4, 'd': 5}
     node_to_index = {Common.PAD: 0, Common.UNK: 1, '1': 2, '2': 3, '3': 4, '4': 5}
     import numpy as np
+
 
     class Config:
         def __init__(self):
@@ -222,7 +224,7 @@ if __name__ == '__main__':
     valid_context_mask_op = output[VALID_CONTEXT_MASK_KEY]
     path_source_lengths_op = output[PATH_SOURCE_LENGTHS_KEY]
     path_lengths_op = output[PATH_LENGTHS_KEY]
-    path_target_lengths_op =  output[PATH_TARGET_LENGTHS_KEY]
+    path_target_lengths_op = output[PATH_TARGET_LENGTHS_KEY]
     path_source_strings_op = output[PATH_SOURCE_STRINGS_KEY]
     path_strings_op = output[PATH_STRINGS_KEY]
     path_target_strings_op = output[PATH_TARGET_STRINGS_KEY]
@@ -234,16 +236,17 @@ if __name__ == '__main__':
     try:
         while True:
             target_indices, target_strings, target_lengths, path_source_indices, \
-                 node_indices, path_target_indices, valid_context_mask, path_source_lengths, \
-                 path_lengths, path_target_lengths, path_source_strings, path_strings, \
-                 path_target_strings = sess.run(
-                [target_index_op, target_string_op, target_length_op, path_source_indices_op, 
+            node_indices, path_target_indices, valid_context_mask, path_source_lengths, \
+            path_lengths, path_target_lengths, path_source_strings, path_strings, \
+            path_target_strings = sess.run(
+                [target_index_op, target_string_op, target_length_op, path_source_indices_op,
                  node_indices_op, path_target_indices_op, valid_context_mask_op, path_source_lengths_op,
                  path_lengths_op, path_target_lengths_op, path_source_strings_op, path_strings_op,
                  path_target_strings_op])
-            
+
             print('Target strings: ', Common.binary_to_string_list(target_strings))
-            print('Context strings: ', Common.binary_to_string_3d(np.concatenate([path_source_strings, path_strings, path_target_strings], -1)))
+            print('Context strings: ', Common.binary_to_string_3d(
+                np.concatenate([path_source_strings, path_strings, path_target_strings], -1)))
             print('Target indices: ', target_indices)
             print('Target lengths: ', target_lengths)
             print('Path source strings: ', Common.binary_to_string_3d(path_source_strings))
@@ -256,6 +259,6 @@ if __name__ == '__main__':
             print('Path target indices: ', path_target_indices)
             print('Path target lengths: ', path_target_lengths)
             print('Valid context mask: ', valid_context_mask)
-            
+
     except tf.errors.OutOfRangeError:
         print('Done training, epoch reached')

@@ -1,7 +1,6 @@
-import requests
 import json
 
-import sys
+import requests
 
 from PathContextInformation import PathContextInformation
 

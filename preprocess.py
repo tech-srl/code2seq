@@ -53,6 +53,7 @@ def process_file(file_path, data_file_role, dataset_name, subtoken_to_count, nod
     print('Max number of contexts per word: ' + str(max_unfiltered))
     return total
 
+
 def context_full_found(context_parts, word_to_count, path_to_count):
     return context_parts[0] in word_to_count \
            and context_parts[1] in path_to_count and context_parts[2] in word_to_count

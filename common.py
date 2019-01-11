@@ -20,52 +20,6 @@ class Common:
             return stripped.lower()
 
     @staticmethod
-    def process_test_input(test_file):
-        programs = []
-        with open(test_file, 'r') as file:
-            line_number = 0
-            for line in file:
-                line_number += 1
-                line = line.rstrip('\n')
-                current_program, id_to_var = {}, {}
-                try:
-                    single_program_object = json.loads(line)
-                except ValueError:
-                    print >> sys.stderr, 'Bad JSON: ' + str(line)
-                    continue
-                assign = single_program_object['assign']
-                query = single_program_object['query']
-                for var_object in assign:
-                    name = ''
-                    infer_type = ''
-                    if Common.INF in var_object:
-                        name, infer_type = var_object[Common.INF], Common.INF
-                    elif Common.GIV in var_object:
-                        name, infer_type = var_object[Common.GIV], Common.GIV
-                    id = var_object['v']
-                    id_to_var[id] = (name, infer_type)
-                for feature in query:
-                    if not ('a' in feature and 'b' in feature and 'f2' in feature):
-                        continue
-                    try:
-                        name, type1 = id_to_var[feature['a']]
-                        name2, type2 = id_to_var[feature['b']]
-                    except KeyError:
-                        print('Key error in line: ' + str(line_number))
-                        print(line)
-                        sys.exit(0)
-                    if feature['a'] == feature['b']:
-                        name2 = 'self'
-                    path = feature['f2']
-                    context = str(path) + ',' + name2
-                    if (name, type1) in current_program:
-                        current_program[(name, type1)].append(context)
-                    else:
-                        current_program[(name, type1)] = [context]
-                programs.append(current_program)
-        return programs
-
-    @staticmethod
     def load_histogram(path, max_size=None):
         histogram = {}
         with open(path, 'r') as file:
@@ -94,13 +48,6 @@ class Common:
         return word_to_index, index_to_word, current_index
 
     @staticmethod
-    def calculate_max_contexts(file):
-        contexts_per_word = Common.process_test_input(file)
-        return max(
-            [max(l, default=0) for l in [[len(contexts) for contexts in prog.values()] for prog in contexts_per_word]],
-            default=0)
-
-    @staticmethod
     def binary_to_string(binary_string):
         return binary_string.decode("utf-8")
 
@@ -117,35 +64,8 @@ class Common:
         return [Common.binary_to_string_matrix(l) for l in binary_string_tensor]
 
     @staticmethod
-    def load_file_lines(path):
-        with open(path, 'r') as f:
-            return f.read().splitlines()
-
-    @staticmethod
-    def load_token_to_subtoken(path):
-        print('Loading token-to-subtoken mapping from: ' + path, file=sys.stderr)
-        mapping = {}
-        with open(path, 'r') as file:
-            for line in file:
-                try:
-                    json_object = json.loads(line)
-                except ValueError:
-                    print >> sys.stderr, 'Bad JSON: ' + str(line)
-                    continue
-                token = json_object['token']
-                subtokens = json_object['subtokens']
-                mapping[token] = subtokens
-        print('Finished loading token-to-subtoken mapping, found: ' + str(len(mapping)) + ' tokens', file=sys.stderr)
-        return mapping
-
-    @staticmethod
-    def split_to_batches(data_lines, batch_size):
-        return [data_lines[x:x + batch_size] for x in range(0, len(data_lines), batch_size)]
-
-    @staticmethod
     def legal_method_names_checker(name):
-        return not name in [Common.UNK, Common.PAD,
-                            Common.EOS]  # and re.match('^_*[a-zA-Z0-9]+$', name.replace(common.internalDelimiter, ''))
+        return not name in [Common.UNK, Common.PAD, Common.EOS]
 
     @staticmethod
     def filter_impossible_names(top_words):
@@ -224,4 +144,3 @@ class SingleTimeStepPrediction:
                                      'token2': pc_info.token2}
                 paths_with_scores.append(path_context_dict)
             self.attention_paths = paths_with_scores
-

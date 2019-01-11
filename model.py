@@ -1,12 +1,11 @@
-import tensorflow as tf
-import reader
-import numpy as np
-import time
-import os
 import _pickle as pickle
+import os
+import time
+import numpy as np
+import tensorflow as tf
 
+import reader
 from common import Common
-
 
 class Model:
     topk = 10
@@ -71,7 +70,7 @@ class Model:
                                           config=self.config)
         optimizer, train_loss = self.build_training_graph(self.queue_thread.get_output())
         self.print_hyperparams()
-        print('Number of trainable params:', 
+        print('Number of trainable params:',
               np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
         self.initialize_session_variables(self.sess)
         print('Initalized variables')
@@ -150,7 +149,7 @@ class Model:
             self.load_model(self.sess)
             if release:
                 release_name = self.config.LOAD_PATH + '.release'
-                print('Releasing model, output model: %s' % release_name )
+                print('Releasing model, output model: %s' % release_name)
                 self.saver.save(self.sess, release_name)
                 return None
         model_dirname = os.path.dirname(self.config.SAVE_PATH if self.config.SAVE_PATH else self.config.LOAD_PATH)
@@ -158,9 +157,10 @@ class Model:
         predicted_file_name = model_dirname + '/pred.txt'
         if not os.path.exists(model_dirname):
             os.makedirs(model_dirname)
-        
-        with open(model_dirname + '/log.txt', 'w') as output_file, open(ref_file_name, 'w') as ref_file, open(predicted_file_name,
-                                                                                             'w') as pred_file:
+
+        with open(model_dirname + '/log.txt', 'w') as output_file, open(ref_file_name, 'w') as ref_file, open(
+                predicted_file_name,
+                'w') as pred_file:
             num_correct_predictions = 0
             total_predictions = 0
             total_prediction_batches = 0
@@ -179,10 +179,12 @@ class Model:
                             [name.replace(Common.internal_delimiter, ' ') for name in true_target_strings]) + '\n')
                     if self.config.BEAM_WIDTH > 0:
                         # predicted indices: (batch, time, beam_width)
-                        predicted_strings = [[[self.index_to_target[i] for i in timestep] for timestep in example] for example in predicted_indices] 
-                        predicted_strings = [list(map(list, zip(*example))) for example in predicted_strings] # (batch, top-k, target_length)
+                        predicted_strings = [[[self.index_to_target[i] for i in timestep] for timestep in example] for
+                                             example in predicted_indices]
+                        predicted_strings = [list(map(list, zip(*example))) for example in
+                                             predicted_strings]  # (batch, top-k, target_length)
                         pred_file.write('\n'.join(
-                            [' '.join(Common.filter_impossible_names(words)) for words in predicted_strings[0]]) + '\n') 
+                            [' '.join(Common.filter_impossible_names(words)) for words in predicted_strings[0]]) + '\n')
                     else:
                         predicted_strings = [[self.index_to_target[i] for i in example]
                                              for example in predicted_indices]
@@ -214,7 +216,7 @@ class Model:
         return num_correct_predictions / total_predictions, precision, recall, f1
 
     def update_correct_predictions(self, num_correct_predictions, output_file, results):
-        for original_name, predicted in results: 
+        for original_name, predicted in results:
             if self.config.BEAM_WIDTH > 0:
                 predicted = predicted[0]
             original_name_parts = original_name.split(Common.internal_delimiter)
@@ -229,7 +231,7 @@ class Model:
         return num_correct_predictions
 
     def update_per_subtoken_statistics(self, results, true_positive, false_positive, false_negative):
-        for original_name, predicted in results:  # top_words: (num_target_parts, topk)
+        for original_name, predicted in results:
             if self.config.BEAM_WIDTH > 0:
                 predicted = predicted[0]
             filtered_predicted_names = Common.filter_impossible_names(predicted)
@@ -368,7 +370,8 @@ class Model:
         contexts_sum = tf.reduce_sum(batched_contexts * tf.expand_dims(valid_mask, -1),
                                      axis=1)  # (batch_size, dim * 2 + rnn_size)
         contexts_average = tf.divide(contexts_sum, tf.to_float(tf.expand_dims(num_contexts_per_example, -1)))
-        fake_encoder_state = tuple(tf.nn.rnn_cell.LSTMStateTuple(contexts_average, contexts_average) for _ in range(self.config.NUM_DECODER_LAYERS))
+        fake_encoder_state = tuple(tf.nn.rnn_cell.LSTMStateTuple(contexts_average, contexts_average) for _ in
+                                   range(self.config.NUM_DECODER_LAYERS))
         projection_layer = tf.layers.Dense(self.target_vocab_size, use_bias=False)
         if is_evaluating and self.config.BEAM_WIDTH > 0:
             batched_contexts = tf.contrib.seq2seq.tile_batch(batched_contexts, multiplier=self.config.BEAM_WIDTH)
@@ -424,7 +427,6 @@ class Model:
         return outputs, final_states
 
     def calculate_path_abstraction(self, path_embed, path_lengths, valid_contexts_mask, is_evaluating=False):
-        # return self.path_max_pool(is_evaluating, path_embed, path_lengths, valid_contexts_mask)
         return self.path_rnn_last_state(is_evaluating, path_embed, path_lengths, valid_contexts_mask)
 
     def path_rnn_last_state(self, is_evaluating, path_embed, path_lengths, valid_contexts_mask):
@@ -461,58 +463,11 @@ class Model:
                 inputs=flat_paths,
                 dtype=tf.float32,
                 sequence_length=lengths
-            )  # (batch * max_contexts, max_path_length + 1, rnn_size / 2) 
-            final_rnn_state = state.h
+            )  
+            final_rnn_state = state.h  # (batch * max_contexts, rnn_size)
 
         return tf.reshape(final_rnn_state,
                           shape=[-1, max_contexts, self.config.RNN_SIZE])  # (batch, max_contexts, rnn_size)
-
-    def path_max_pool(self, is_evaluating, path_embed, path_lengths, valid_contexts_mask):
-        # path_embed:           (batch, max_contexts, max_path_length+1, dim)
-        # path_length:          (batch, max_contexts)
-        # valid_contexts_mask:  (batch, max_contexts)
-        flat_paths = tf.reshape(path_embed, shape=[-1, self.config.MAX_PATH_LENGTH,
-                                                   self.config.EMBEDDINGS_SIZE])  # (batch * max_contexts, max_path_length+1, dim)
-        flat_valid_contexts_mask = tf.reshape(valid_contexts_mask, [-1])  # (batch * max_contexts)
-        lengths = tf.multiply(tf.reshape(path_lengths, [-1]),
-                              tf.cast(flat_valid_contexts_mask, tf.int32))  # (batch * max_contexts)
-        if self.config.BIRNN:
-            rnn_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE / 2)
-            rnn_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE / 2)
-            if not is_evaluating:
-                rnn_cell_fw = tf.nn.rnn_cell.DropoutWrapper(rnn_cell_fw,
-                                                            output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
-                rnn_cell_bw = tf.nn.rnn_cell.DropoutWrapper(rnn_cell_bw,
-                                                            output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
-            output, _ = tf.nn.bidirectional_dynamic_rnn(
-                cell_fw=rnn_cell_fw,
-                cell_bw=rnn_cell_bw,
-                inputs=flat_paths,
-                dtype=tf.float32,
-                sequence_length=lengths)
-            output = tf.concat(output, 2)  # (batch * max_contexts, max_path_length+1, rnn_size / 2)
-            # final_rnn_state = tf.concat([state_fw.h, state_bw.h], axis=-1) # (batch * max_contexts, rnn_size) 
-        else:
-            rnn_cell = tf.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE)
-            if not is_evaluating:
-                rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
-            output, _ = tf.nn.dynamic_rnn(
-                cell=rnn_cell,
-                inputs=flat_paths,
-                dtype=tf.float32,
-                sequence_length=lengths
-            )  # (batch * max_contexts, max_path_length + 1, rnn_size / 2) 
-            # final_rnn_state = state.h
-            # output # (batch * max_contexts, max_path_length+1, rnn_size / 2)
-        mask = tf.expand_dims(tf.to_float(tf.sequence_mask(lengths, maxlen=self.config.MAX_PATH_LENGTH)),
-                              -1)  # (batch * max_contexts, max_path_length+1, 1)
-        output = tf.multiply(mask, output)  # (batch * max_contexts, max_path_length+1, rnn_size / 2)
-        max_output = tf.reduce_max(output, axis=1)  # (batch * max_contexts, rnn_size)
-        final_rnn_state = max_output  # (batch * max_contexts, rnn_size)
-        return tf.reshape(final_rnn_state,
-                          shape=[-1, self.config.MAX_CONTEXTS, self.config.RNN_SIZE])  # (batch, max_contexts, rnn_size)
-        # paths_mask = tf.expand_dims(tf.sequence_mask(path_lengths, maxlen=self.config.MAX_PATH_LENGTH, dtype=tf.float32), -1)        # (batch, max_contexts, max_path_length+1, 1)
-        # return tf.reduce_sum(path_embed * paths_mask, axis=2)                      # (batch, max_contexts, dim)
 
     def compute_contexts(self, subtoken_vocab, nodes_vocab, source_input, nodes_input,
                          target_input, valid_mask, path_source_lengths, path_lengths, path_target_lengths,
@@ -526,9 +481,6 @@ class Model:
         target_word_embed = tf.nn.embedding_lookup(params=subtoken_vocab,
                                                    ids=target_input)  # (batch, max_contexts, max_name_parts, dim)
 
-        # clipped_source_lengths = tf.maximum(1, source_lengths)
-        # clipped_target_lengths = tf.maximum(1, target_lengths)
-
         source_word_mask = tf.expand_dims(
             tf.sequence_mask(path_source_lengths, maxlen=self.config.MAX_NAME_PARTS, dtype=tf.float32),
             -1)  # (batch, max_contexts, max_name_parts, 1)
@@ -537,7 +489,7 @@ class Model:
             -1)  # (batch, max_contexts, max_name_parts, 1)
 
         source_words_sum = tf.reduce_sum(source_word_embed * source_word_mask,
-                                         axis=2)  # (batch, max_contexts, dim)        
+                                         axis=2)  # (batch, max_contexts, dim)
         path_nodes_aggregation = self.calculate_path_abstraction(path_embed, path_lengths, valid_mask,
                                                                  is_evaluating)  # (batch, max_contexts, rnn_size)
         target_words_sum = tf.reduce_sum(target_word_embed * target_word_mask, axis=2)  # (batch, max_contexts, dim)
@@ -547,18 +499,8 @@ class Model:
         if not is_evaluating:
             context_embed = tf.nn.dropout(context_embed, self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
 
-        flat_embed = tf.reshape(context_embed, [-1,
-                                                self.config.EMBEDDINGS_SIZE * 2 + self.config.RNN_SIZE])  # (batch * max_contexts, dim * 2 + rnn_size)
-        transform_param = tf.get_variable('TRANSFORM',
-                                          shape=(self.config.EMBEDDINGS_SIZE * 2 + self.config.RNN_SIZE,
-                                                 self.config.DECODER_SIZE),
-                                          dtype=tf.float32)
-
-        flat_embed = tf.tanh(tf.matmul(flat_embed, transform_param))  # (batch * max_contexts, dim)
-
-        batched_embed = tf.reshape(flat_embed,
-                                   shape=[-1, max_contexts,
-                                          self.config.DECODER_SIZE])  # (batch, max_contexts, decoder_size)
+        batched_embed = tf.layers.dense(inputs=context_embed, units=self.config.DECODER_SIZE,
+                                     activation=tf.nn.tanh, trainable=not is_evaluating)
 
         return batched_embed
 
@@ -615,7 +557,7 @@ class Model:
                                                config=self.config, is_evaluating=True)
             self.predict_placeholder = tf.placeholder(tf.string)
             reader_output = self.predict_queue.process_from_placeholder(self.predict_placeholder)
-            reader_output = {key:tf.expand_dims(tensor, 0) for key,tensor in reader_output.items()}
+            reader_output = {key: tf.expand_dims(tensor, 0) for key, tensor in reader_output.items()}
             self.predict_top_indices_op, self.predict_top_scores_op, _, self.attention_weights_op = \
                 self.build_test_graph(reader_output)
             self.predict_source_string = reader_output[reader.PATH_SOURCE_STRINGS_KEY]
@@ -643,13 +585,13 @@ class Model:
             true_target_strings = Common.binary_to_string(true_target_strings[0])
 
             if self.config.BEAM_WIDTH > 0:
-                predicted_strings = [[self.index_to_target[sugg] for sugg in timestep] 
-                                      for timestep in predicted_indices] # (target_length, top-k)  
-                predicted_strings = list(map(list, zip(*predicted_strings))) # (top-k, target_length)
+                predicted_strings = [[self.index_to_target[sugg] for sugg in timestep]
+                                     for timestep in predicted_indices]  # (target_length, top-k)  
+                predicted_strings = list(map(list, zip(*predicted_strings)))  # (top-k, target_length)
                 top_scores = [np.exp(np.sum(s, 0)) for s in top_scores]
             else:
-                predicted_strings = [self.index_to_target[idx] 
-                                      for idx in predicted_indices] # (batch, target_length)  
+                predicted_strings = [self.index_to_target[idx]
+                                     for idx in predicted_indices]  # (batch, target_length)  
 
             attention_per_path = None
             if self.config.BEAM_WIDTH == 0:
@@ -660,7 +602,7 @@ class Model:
         return results
 
     def get_attention_per_path(self, source_strings, path_strings, target_strings, attention_weights):
-        # attention_weights # (time, contexts)
+        # attention_weights:  (time, contexts)
         results = []
         for time_step in attention_weights:
             attention_per_context = {}
@@ -670,44 +612,6 @@ class Model:
                 attention_per_context[string_triplet] = weight
             results.append(attention_per_context)
         return results
-
-    @staticmethod
-    def score_per_word_in_batch(words, weighted_average_contexts_per_word):
-        """
-        calculates (word dot avg_context) for each word and its corresponding average context 
-        
-        :param words:                                   # (batch, num_words, dim)
-        :param weighted_average_contexts_per_word:      # (batch, num_words, dim)
-        :return: score for every word in every batch    # (batch, num_words)
-        """
-        word_scores = tf.reduce_sum(tf.multiply(
-            words, weighted_average_contexts_per_word),
-            axis=2)  # (batch, num_words)
-
-        # word_scores = tf.einsum('ijk,ijk->ij', words, weighted_average_contexts_per_word)
-        return word_scores
-
-    def init_graph_from_values(self, session,
-                               final_words, words_vocab_variable,
-                               final_words_attention, words_attention_vocab_variable,
-                               final_contexts, contexts_vocab_variable,
-                               final_attention_param, attention_variable):
-        words_placeholder = tf.placeholder(tf.float32, shape=(self.subtoken_vocab_size, self.config.EMBEDDINGS_SIZE))
-        words_vocab_init = words_vocab_variable.assign(words_placeholder)
-        words_attention_placeholder = tf.placeholder(tf.float32,
-                                                     shape=(self.subtoken_vocab_size, self.config.EMBEDDINGS_SIZE))
-        words_attention_vocab_init = words_attention_vocab_variable.assign(words_attention_placeholder)
-        contexts_placeholder = tf.placeholder(tf.float32,
-                                              shape=(self.nodes_vocab_size + 1, self.config.EMBEDDINGS_SIZE))
-        contexts_vocab_init = contexts_vocab_variable.assign(contexts_placeholder)
-        attention_placeholder = tf.placeholder(tf.float32,
-                                               shape=(self.config.EMBEDDINGS_SIZE, self.config.EMBEDDINGS_SIZE))
-        attention_init = attention_variable.assign(attention_placeholder)
-
-        session.run(words_vocab_init, feed_dict={words_placeholder: final_words})
-        session.run(words_attention_vocab_init, feed_dict={words_attention_placeholder: final_words_attention})
-        session.run(contexts_vocab_init, feed_dict={contexts_placeholder: final_contexts})
-        session.run(attention_init, feed_dict={attention_placeholder: final_attention_param})
 
     def save_model(self, sess, path):
         dirname = os.path.dirname(path)
@@ -748,7 +652,6 @@ class Model:
             self.index_to_target = pickle.load(file)
             self.target_vocab_size = pickle.load(file)
 
-            # self.final_paths = pickle.load(file)
             self.node_to_index = pickle.load(file)
             self.index_to_node = pickle.load(file)
             self.nodes_vocab_size = pickle.load(file)

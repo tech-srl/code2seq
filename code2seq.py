@@ -6,9 +6,9 @@ from model import Model
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-d", "--data", dest="data_path",
-        help="path to preprocessed dataset", required=False)
+                        help="path to preprocessed dataset", required=False)
     parser.add_argument("-te", "--test", dest="test_path",
-        help="path to test file", metavar="FILE", required=False)
+                        help="path to test file", metavar="FILE", required=False)
 
     parser.add_argument("-s", "--save", dest="save_path",
                         help="path to save file", metavar="FILE", required=False)
