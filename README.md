@@ -1,14 +1,13 @@
-# Code2vec
-A neural network for learning distributed representations of code.
+# code2seq
 This is an official implemention of the model described in:
 
-[Uri Alon](http://urialon.cswp.cs.technion.ac.il), [Meital Zilberstein](http://www.cs.technion.ac.il/~mbs/), [Omer Levy](https://levyomer.wordpress.com) and [Eran Yahav](http://www.cs.technion.ac.il/~yahave/),
-"code2vec: Learning Distributed Representations of Code", 2018 
-https://arxiv.org/pdf/1803.09473
+[Uri Alon](http://urialon.cswp.cs.technion.ac.il), [Shaked Brody](http://www.cs.technion.ac.il/people/shakedbr/), [Omer Levy](https://levyomer.wordpress.com) and [Eran Yahav](http://www.cs.technion.ac.il/~yahave/),
 
-_**October 2018** - the paper was accepted to [POPL'2019](https://popl19.sigplan.org)_!
+"code2seq: Generating Sequences from Structured Representations of Code" 
+https://arxiv.org/pdf/1808.01400
+(to appear in *ICLR'2019*)
 
-An **online demo** is available at [https://code2vec.org/](https://code2vec.org/).
+An **online demo** is available at [https://code2seq.org/](https://code2seq.org/).
 
 This is a TensorFlow implementation, designed to be easy and useful in research, 
 and for experimenting with new ideas in machine learning for code tasks.
