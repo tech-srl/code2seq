@@ -1,11 +1,7 @@
 # code2seq
 This is an official implemention of the model described in:
 
-[Uri Alon](http://urialon.cswp.cs.technion.ac.il), [Shaked Brody](http://www.cs.technion.ac.il/people/shakedbr/), [Omer Levy](https://levyomer.wordpress.com) and [Eran Yahav](http://www.cs.technion.ac.il/~yahave/): 
-
-"code2seq: Generating Sequences from Structured Representations of Code" 
-
-https://arxiv.org/pdf/1808.01400
+[Uri Alon](http://urialon.cswp.cs.technion.ac.il), [Shaked Brody](http://www.cs.technion.ac.il/people/shakedbr/), [Omer Levy](https://levyomer.wordpress.com) and [Eran Yahav](http://www.cs.technion.ac.il/~yahave/), "code2seq: Generating Sequences from Structured Representations of Code" [[PDF]](https://arxiv.org/pdf/1808.01400)
 
 (to appear in *ICLR'2019*)
 
