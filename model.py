@@ -99,9 +99,8 @@ class Model:
                 epoch_num = iteration * self.config.SAVE_EVERY_EPOCHS
                 print('Finished %d epochs' % self.config.SAVE_EVERY_EPOCHS)
                 results, precision, recall, f1 = self.evaluate()
-                print('Accuracy after %d epochs: %f' % (epoch_num, results))
-                print('After ' + str(epoch_num) + ' epochs: Precision: ' + str(precision) + ', recall: ' + str(
-                    recall) + ', F1: ' + str(f1))
+                print('Accuracy after %d epochs: %.5f' % (epoch_num, results))
+                print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (epoch_num, precision, recall, f1))
                 if f1 > best_f1:
                     best_f1 = f1
                     best_f1_precision = precision
@@ -116,7 +115,7 @@ class Model:
                     if epochs_no_improve >= self.config.PATIENCE:
                         print('Not improved for %d epochs, stopping training' % self.config.PATIENCE)
                         print('Best scores - epoch %d: ' % best_epoch)
-                        print('Precision: %f, recall: %f, F1: %f' % (best_f1_precision, best_f1_recall, best_f1))
+                        print('Precision: %.5f, recall: %.5f, F1: %.5f' % (best_f1_precision, best_f1_recall, best_f1))
                         return
 
         if self.config.SAVE_PATH:
@@ -175,17 +174,20 @@ class Model:
                         [self.eval_predicted_indices_op, self.eval_true_target_strings_op, self.eval_topk_values],
                     )
                     true_target_strings = Common.binary_to_string_list(true_target_strings)
-                    if self.config.BEAM_WIDTH > 0:
-                        predicted_strings = [[self.index_to_target[i] for i in predicted_indices_batch]
-                                             for predicted_indices_batch in predicted_indices]
-                    else:
-                        predicted_strings = [[self.index_to_target[i] for i in predicted_indices_batch]
-                                             for predicted_indices_batch in predicted_indices]
                     ref_file.write(
                         '\n'.join(
                             [name.replace(Common.internal_delimiter, ' ') for name in true_target_strings]) + '\n')
-                    pred_file.write('\n'.join(
-                        [' '.join(Common.filter_impossible_names(words)) for words in predicted_strings]) + '\n')
+                    if self.config.BEAM_WIDTH > 0:
+                        # predicted indices: (batch, time, beam_width)
+                        predicted_strings = [[[self.index_to_target[i] for i in timestep] for timestep in example] for example in predicted_indices] 
+                        predicted_strings = [list(map(list, zip(*example))) for example in predicted_strings] # (batch, top-k, target_length)
+                        pred_file.write('\n'.join(
+                            [' '.join(Common.filter_impossible_names(words)) for words in predicted_strings[0]]) + '\n') 
+                    else:
+                        predicted_strings = [[self.index_to_target[i] for i in example]
+                                             for example in predicted_indices]
+                        pred_file.write('\n'.join(
+                            [' '.join(Common.filter_impossible_names(words)) for words in predicted_strings]) + '\n')
 
                     num_correct_predictions = self.update_correct_predictions(num_correct_predictions, output_file,
                                                                               zip(true_target_strings,
@@ -212,8 +214,9 @@ class Model:
         return num_correct_predictions / total_predictions, precision, recall, f1
 
     def update_correct_predictions(self, num_correct_predictions, output_file, results):
-        for original_name, predicted_suggestions in results:  # top_words: (num_targets, topk)
-            predicted = predicted_suggestions  # [0]
+        for original_name, predicted in results: 
+            if self.config.BEAM_WIDTH > 0:
+                predicted = predicted[0]
             original_name_parts = original_name.split(Common.internal_delimiter)
             filtered_original = Common.filter_impossible_names(original_name_parts)
             filtered_predicted_parts = Common.filter_impossible_names(predicted)
@@ -226,19 +229,11 @@ class Model:
         return num_correct_predictions
 
     def update_per_subtoken_statistics(self, results, true_positive, false_positive, false_negative):
-        for original_name, predicted_suggestions in results:  # top_words: (num_target_parts, topk)
-            predicted = predicted_suggestions  # [0]
+        for original_name, predicted in results:  # top_words: (num_target_parts, topk)
+            if self.config.BEAM_WIDTH > 0:
+                predicted = predicted[0]
             filtered_predicted_names = Common.filter_impossible_names(predicted)
             filtered_original_subtokens = Common.filter_impossible_names(original_name.split(Common.internal_delimiter))
-            # if len(filtered_predicted_names) > 0 and len(filtered_predicted_names[0]) > 0:
-
-            '''for target_position in filtered_predicted_names:
-                for target_position_suggestion in target_position:
-                    if target_position_suggestion == common.blank_target_padding:
-                        break
-                    if not target_position_suggestion in predicted_subtokens:
-                        predicted_subtokens.append(target_position_suggestion)
-                        break'''
 
             if ''.join(filtered_original_subtokens) == ''.join(filtered_predicted_names):
                 true_positive += len(filtered_original_subtokens)
