@@ -171,7 +171,7 @@ class Reader:
 
     def compute_output(self):
         dataset = tf.data.experimental.CsvDataset(self.file_path, record_defaults=self.record_defaults, field_delim=' ',
-                                                  use_quote_delim=False)
+                                                  use_quote_delim=False, buffer_size=(1024 * 1024 * 1024))
 
         if not self.is_evaluating:
             if self.config.SAVE_EVERY_EPOCHS > 1:
@@ -179,7 +179,7 @@ class Reader:
             dataset = dataset.shuffle(self.config.BATCH_QUEUE_SIZE, reshuffle_each_iteration=True)
         dataset = dataset.map(self.process_dataset, num_parallel_calls=self.config.NUM_BATCHING_THREADS)
         dataset = dataset.batch(self.batch_size)
-        dataset = dataset.prefetch(self.config.PREFETCH_NUM_BATCHES)
+        dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
         self.iterator = tf.data.Iterator.from_structure(dataset.output_types, dataset.output_shapes)
         self.reset_op = self.iterator.make_initializer(dataset)
         return self.iterator.get_next()
