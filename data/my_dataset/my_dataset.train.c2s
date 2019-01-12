@@ -1,7 +1,0 @@
-get|leaves node,Cls0|Cls|Mth|Nm1,METHOD_NAME node,Cls0|Cls|Mth|Bk|Ret|Nm0,leaves METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,leaves  
-get|name string,Cls0|Mth|Nm1,METHOD_NAME string,Cls0|Mth|Bk|Ret|Nm0,name METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,name  
-get|length long,Prim0|Mth|Nm1,METHOD_NAME long,Prim0|Mth|Bk|Ret|Nm0,length METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,length  
-normalize|name default|string,VDID0|Prm|Mth|Bk|Ex|VDE|VD|Cal1|Nm4,replace|all string,Cls0|VDE|Ex|Bk|If|Eq|Cal0|Nm0,stripped string,Cls0|VDE|VD|Cal1|Nm0,original string,Cls1|Prm|Mth|Bk|Ex|VDE|VD|Cal1|Nm0,original original,VDID0|Prm|Mth|Bk|If|Eq|IntEx1,0
-is|method get|type,Nm2|Cal|VD|VDE|Ex|Bk|Ret|Cal0|Nm1,node type,VDID0|VD|VDE|Ex|Bk|Ret|Cal0|Nm3,is|method METHOD_NAME,Nm1|Mth|Bk|Ex|VDE|Cls0,string get|user|data,Nm3|Cal0|Cal|Nm2,get|type node,VDID0|Prm|Mth|Bk|Ret|Cal0|Nm2,type
-is|method parent|property,VDID0|VD|VDE|Ex|Bk|Ex|VDE|VD|VDID0,parent|type parent|property,Nm0|Eq|If|Bk|Ret|And|Cal0|Fld0|Nm0,common type,Nm2|Cal|And|Cal1|Fld0|Nm2,method|declaration node,VDID0|Prm|Mth|Bk|Ex|VDE|Cls0,string type,VDID0|Prm|Mth|Bk|Ex|VDE|VD|Cal1|Nm0,parent|property
-split|to|subtokens filter,Nm3|Cal0|Cal0|Cal0|Cal|Cal2|Nm0,collectors of,Nm3|Cal0|Cal0|Cal0|Cal0|Lambda|Ex|Gt|IntEx1,0 stream,Nm0|Cal0|Cal0|Cal0|Lambda|Ex|Cal0|Fld3|Nm2,empty|string s,Nm2|Cal|Fld3|Nm0,common stream,Nm0|Cal0|Cal2|StrEx2,azaz||[|-|azazazs

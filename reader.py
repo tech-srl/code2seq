@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 
 from common import Common
@@ -25,6 +27,8 @@ class Reader:
     def __init__(self, subtoken_to_index, target_to_index, node_to_index, config, is_evaluating=False):
         self.config = config
         self.file_path = config.TEST_PATH if is_evaluating else (config.TRAIN_PATH + '.train.c2s')
+        if not os.path.exists(self.file_path):
+            print('%s cannot find file: %s' % ('Evaluation reader' if is_evaluating else 'Train reader', self.file_path))
         self.batch_size = config.TEST_BATCH_SIZE if is_evaluating else config.BATCH_SIZE
         self.is_evaluating = is_evaluating
 

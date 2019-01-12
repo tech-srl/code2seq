@@ -9,7 +9,7 @@ type=java-large
 dataset_name=java-large
 data_dir=data/${dataset_name}
 data=${data_dir}/${dataset_name}
-test_data=${data_dir}/${dataset_name}.test.c2v
+test_data=${data_dir}/${dataset_name}.test.c2s
 model_dir=models/${type}
 
 mkdir -p ${model_dir}

@@ -1,7 +1,0 @@
-get|leaves node,Cls0|Cls|Mth|Nm1,METHOD_NAME node,Cls0|Cls|Mth|Bk|Ret|Nm0,leaves METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,leaves  
-get|name string,Cls0|Mth|Nm1,METHOD_NAME string,Cls0|Mth|Bk|Ret|Nm0,name METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,name  
-get|length long,Prim0|Mth|Nm1,METHOD_NAME long,Prim0|Mth|Bk|Ret|Nm0,length METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,length  
-normalize|name replace|all,Nm4|Cal|VD|VDE|Ex|Bk|If|Eq|IntEx1,0 length,Nm2|Cal|Eq|IntEx1,0 replace|all,Nm2|Cal1|Cal1|Nm2,replace|all replace|all,Nm4|Cal1|Cal1|Cal1|Cal1|Nm2,replace|all original,Nm0|As|Ex|Bk|If|Eq|Cal0|Nm2,length
-is|method string,Cls0|VDE|VD|VDID0,type string,Cls0|VDE|VD|Cal1|Nm2,get|type node,Cls1|Prm|Mth|Bk|Ex|VDE|Cls0,string METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Nm1,node type,VDID0|VD|VDE|Ex|Bk|Ret|Cal0|Nm2,type
-is|method node,Cls1|Prm|Mth|Bk|Ex|VDE|VD|Cal1|Nm0,parent|property type,VDID0|Prm|Mth|Bk|Ret|And|Cal0|Nm2,type node,Nm0|Cal0|Nm2,get|parent|node common,Nm0|Fld0|Nm2,name|expr type,Nm2|Cal|And|Cal1|Nm3,equals
-split|to|subtokens METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Cal2|MethRef|Type|Cls0,array|list common,Nm0|Fld3|Cal|Ex|Lambda2|Cal0|Nm3,map filter,Nm3|Cal0|Cal0|Lambda|Ex|Cal0|Nm0,common stream,Nm0|Cal0|Cal0|Cal0|Lambda|Ex|Cal0|Nm0,common s,VDID0|Prm|Lambda2|Ex|Gt|Cal0|Nm2,length
