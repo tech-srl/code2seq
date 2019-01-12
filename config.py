@@ -9,7 +9,7 @@ class Config:
         config.TEST_BATCH_SIZE = 256
         config.PREFETCH_NUM_BATCHES = 100
         config.NUM_BATCHING_THREADS = 7
-        config.BATCH_QUEUE_SIZE = 10000
+        config.BATCH_QUEUE_SIZE = 100000
         config.TRAIN_PATH = args.data_path
         config.TEST_PATH = args.test_path if args.test_path is not None else ''
         config.DATA_NUM_CONTEXTS = 0
@@ -19,7 +19,7 @@ class Config:
         config.EMBEDDINGS_SIZE = 128
         config.RNN_SIZE = 128 * 2 # Two LSTMs to embed paths, each of size 128
         config.DECODER_SIZE = 320
-        config.NUM_DECODER_LAYERS = 1  
+        config.NUM_DECODER_LAYERS = 1
         config.SAVE_PATH = args.save_path
         config.LOAD_PATH = args.load_path
         config.MAX_PATH_LENGTH = 8 + 1
@@ -33,7 +33,7 @@ class Config:
         config.USE_NESTEROV = True
         config.RELEASE = args.release
         return config
-    
+
     def take_model_hyperparams_from(self, otherConfig):
         self.EMBEDDINGS_SIZE = otherConfig.EMBEDDINGS_SIZE
         self.RNN_SIZE = otherConfig.RNN_SIZE
