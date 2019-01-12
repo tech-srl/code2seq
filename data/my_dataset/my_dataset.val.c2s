@@ -1,0 +1,7 @@
+get|leaves node,Cls0|Cls|Mth|Nm1,METHOD_NAME node,Cls0|Cls|Mth|Bk|Ret|Nm0,leaves METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,leaves  
+get|name string,Cls0|Mth|Nm1,METHOD_NAME string,Cls0|Mth|Bk|Ret|Nm0,name METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,name  
+get|length long,Prim0|Mth|Nm1,METHOD_NAME long,Prim0|Mth|Bk|Ret|Nm0,length METHOD_NAME,Nm1|Mth|Bk|Ret|Nm0,length  
+normalize|name [\],StrEx3|Cal1|Cal1|As|Ex|Bk|Ex|VDE|Cls0,string stripped,VDID0|VD|VDE|Ex|Bk|If|Eq|Cal0|Nm0,stripped string,Cls0|VDE|Ex|Bk|If|Eq|Cal0|Nm2,length string,Cls1|Prm|Mth|Bk|If|Eq|IntEx1,0 original,Nm0|Cal0|Cal1|Cal1|Cal1|Cal1|Nm2,replace|all
+is|method get|type,Nm2|Cal|VD|VDE|Ex|Bk|Ret|Cal0|Nm3,is|method node,VDID0|Prm|Mth|Bk|Ex|VDE|VD|Cal1|Nm2,get|type type,VDID0|VD|Cal1|Nm2,get|type METHOD_NAME,Nm1|Mth|Bk|Ex|VDE|VD|Cal1|Cal0|Nm3,get|user|data node,VDID0|Prm|Mth|Bk|Ex|VDE|Cls0,string
+is|method boolean,Prim0|Mth|Prm|Cls1,node string,Cls0|VDE|Ex|Bk|Ret|And|Cal1|Nm3,equals property,Cls0|VDE|Ex|Bk|If|Eq|Null1,null parent|property,Nm0|Eq|If|Bk|Ret|And|Cal0|Fld0|Nm2,name|expr get|parent|node,Nm2|Cal0|Cal|Fld2|Nm0,common
+split|to|subtokens s,VDID0|Prm|Lambda2|Cal0|Cal|Cal2|Nm3,to|collection of,Nm3|Cal0|Cal0|Lambda|Ex|Gt|Cal0|Nm2,length filter,Nm3|Cal0|Cal0|Lambda|Ex|Cal0|Nm4,normalize|name 0,IntEx1|Gt|Ex|Lambda2|Cal0|Cal|Cal2|Nm0,collectors str,Nm0|Cal2|Cal0|Cal0|Cal0|Cal0|Cal|Cal2|Nm3,to|collection
