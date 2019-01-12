@@ -18,8 +18,13 @@ if __name__ == '__main__':
                         help='if specified and loading a trained model, release the loaded model for a smaller model '
                              'size.')
     parser.add_argument('--predict', action='store_true')
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
-    config = Config.get_default_config(args)
+
+    if args.debug:
+        config = Config.get_debug_config(args)
+    else:
+        config = Config.get_default_config(args)
 
     model = Model(config)
     print('Created model')

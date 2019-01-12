@@ -171,7 +171,7 @@ class Reader:
 
     def compute_output(self):
         dataset = tf.data.experimental.CsvDataset(self.file_path, record_defaults=self.record_defaults, field_delim=' ',
-                                                  use_quote_delim=False, buffer_size=(1024*1024*1024))
+                                                  use_quote_delim=False, buffer_size=self.config.CSV_BUFFER_SIZE)
 
         if not self.is_evaluating:
             if self.config.SAVE_EVERY_EPOCHS > 1:
