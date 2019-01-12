@@ -3,9 +3,9 @@ This is an official implemention of the model described in:
 
 [Uri Alon](http://urialon.cswp.cs.technion.ac.il), [Shaked Brody](http://www.cs.technion.ac.il/people/shakedbr/), [Omer Levy](https://levyomer.wordpress.com) and [Eran Yahav](http://www.cs.technion.ac.il/~yahave/), "code2seq: Generating Sequences from Structured Representations of Code" [[PDF]](https://arxiv.org/pdf/1808.01400)
 
-(to appear in *ICLR'2019*)
+to appear in *ICLR'2019*
 
-An **online demo** is available at [https://code2seq.org/](https://code2seq.org/).
+An **online demo** is available at [https://code2seq.org](https://code2seq.org/).
 
 This is a TensorFlow implementation, designed to be easy and useful in research, 
 and for experimenting with new ideas in machine learning for code tasks.
@@ -13,7 +13,7 @@ By default, it learns Java source code and predicts Java method names, but it ca
 since the TensorFlow network is agnostic to the input programming language (see [Extending to other languages](#extending)).
 Contributions are welcome.
 
-<center style="padding: 40px"><img width="70%" src="https://github.com/tech-srl/code2vec/raw/master/images/network.png" /></center>
+<center style="padding: 40px"><img width="70%" src="https://github.com/tech-srl/code2seq/raw/master/images/network.png" /></center>
 
 Table of Contents
 =================
@@ -26,14 +26,9 @@ Table of Contents
 
 ## Requirements
 On Ubuntu:
-  * [Python3](https://www.linuxbabe.com/ubuntu/install-python-3-6-ubuntu-16-04-16-10-17-04). To check if you have it:
-> python3 --version
-  * TensorFlow - version 1.5 or newer ([install](https://www.tensorflow.org/install/install_linux)). To check TensorFlow version:
+  * [Python3](https://www.linuxbabe.com/ubuntu/install-python-3-6-ubuntu-16-04-16-10-17-04). 
+  * TensorFlow version 1.12 or newer ([install](https://www.tensorflow.org/install/install_linux)). To check TensorFlow version:
 > python3 -c 'import tensorflow as tf; print(tf.\_\_version\_\_)'
-  * If you are using a GPU, you will need CUDA 9.0 ([download](https://developer.nvidia.com/cuda-90-download-archive)) 
-  as this is the version that is currently supported by TensorFlow. To check CUDA version:
-> nvcc --version
-  * For GPU: cuDNN (>=7.0) ([download](http://developer.nvidia.com/cudnn))
   * For [creating a new dataset](#creating-and-preprocessing-a-new-java-dataset) or [manually examining a trained model](#step-4-manual-examination-of-a-trained-model) (any operation that requires parsing of a new code example) - [Java JDK](https://openjdk.java.net/install/)
 
 ## Quickstart
