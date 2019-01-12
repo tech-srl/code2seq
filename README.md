@@ -13,7 +13,7 @@ By default, it learns Java source code and predicts Java method names, but it ca
 since the TensorFlow network is agnostic to the input programming language (see [Extending to other languages](#extending)).
 Contributions are welcome.
 
-<center style="padding: 40px"><img width="70%" src="https://github.com/tech-srl/code2vec/raw/master/images/network.png" /></center>
+<center style="padding: 40px"><img width="70%" src="https://github.com/tech-srl/code2seq/raw/master/images/network.png" /></center>
 
 Table of Contents
 =================
