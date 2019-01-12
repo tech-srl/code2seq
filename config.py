@@ -7,9 +7,9 @@ class Config:
         config.PATIENCE = 10
         config.BATCH_SIZE = 512
         config.TEST_BATCH_SIZE = 256
-        config.PREFETCH_NUM_BATCHES = 10
+        config.PREFETCH_NUM_BATCHES = 100
         config.NUM_BATCHING_THREADS = 7
-        config.BATCH_QUEUE_SIZE = 100000
+        config.BATCH_QUEUE_SIZE = 10000
         config.TRAIN_PATH = args.data_path
         config.TEST_PATH = args.test_path if args.test_path is not None else ''
         config.DATA_NUM_CONTEXTS = 0
