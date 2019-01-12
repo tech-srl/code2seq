@@ -268,7 +268,7 @@ class Model:
         print('Max target length:\t\t\t', self.config.MAX_TARGET_PARTS)
         print('Embeddings dropout keep_prob:\t\t', self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
         print('LSTM dropout keep_prob:\t\t\t', self.config.RNN_DROPOUT_KEEP_PROB)
-        print('============================')
+        print('============================================')
 
     @staticmethod
     def calculate_results(true_positive, false_positive, false_negative):
