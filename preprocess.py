@@ -20,7 +20,7 @@ def save_dictionaries(dataset_name, subtoken_to_count, node_to_count, target_to_
         print('Dictionaries saved to: {}'.format(save_dict_file_path))
 
 
-def process_file(file_path, data_file_role, dataset_name, subtoken_to_count, node_to_count, max_contexts):
+def process_file(file_path, data_file_role, dataset_name, max_contexts):
     sum_total = 0
     sum_sampled = 0
     total = 0
