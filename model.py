@@ -253,7 +253,9 @@ class Model:
 
     def print_hyperparams(self):
         print('Training batch size:\t\t\t', self.config.BATCH_SIZE)
-        print('Training path:\t\t\t\t', self.config.TRAIN_PATH)
+        print('Dataset path:\t\t\t\t', self.config.TRAIN_PATH)
+        print('Training file path:\t\t\t', self.config.TRAIN_PATH + '.train.c2s')
+        print('Validation path:\t\t\t', self.config.TEST_PATH)
         print('Taking max contexts from each example:\t', self.config.MAX_CONTEXTS)
         print('Random path sampling:\t\t\t', self.config.RANDOM_CONTEXTS)
         print('Embedding size:\t\t\t\t', self.config.EMBEDDINGS_SIZE)
