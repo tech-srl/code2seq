@@ -181,7 +181,7 @@ class Reader:
             if self.config.SAVE_EVERY_EPOCHS > 1:
                 dataset = dataset.repeat(self.config.SAVE_EVERY_EPOCHS)
             dataset = dataset.shuffle(self.config.BATCH_QUEUE_SIZE, reshuffle_each_iteration=True)
-        dataset = dataset.apply(tf.contrib.data.map_and_batch(
+        dataset = dataset.apply(tf.data.experimental.map_and_batch(
             map_func=self.process_dataset, batch_size=self.batch_size, num_parallel_calls=self.config.NUM_BATCHING_THREADS))
         dataset = dataset.prefetch(self.config.PREFETCH_NUM_BATCHES)
         #self.iterator = tf.data.Iterator.from_structure(dataset.output_types, dataset.output_shapes)
