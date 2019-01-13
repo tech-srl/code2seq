@@ -104,7 +104,6 @@ if __name__ == '__main__':
     num_training_examples = 0
     for data_file_path, data_role in zip([test_data_path, val_data_path, train_data_path], ['test', 'val', 'train']):
         num_examples = process_file(file_path=data_file_path, data_file_role=data_role, dataset_name=args.output_name,
-                                    subtoken_to_count=subtoken_to_count, node_to_count=node_to_count,
                                     max_contexts=int(args.max_contexts))
         if data_role == 'train':
             num_training_examples = num_examples
