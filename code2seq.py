@@ -1,5 +1,6 @@
-from config import Config
 from argparse import ArgumentParser
+
+from config import Config
 from interactive_predict import InteractivePredictor
 from model import Model
 

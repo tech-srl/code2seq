@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from PathContextInformation import PathContextInformation
+from common import PathContextInformation
 
 
 class Extractor:
@@ -13,7 +13,8 @@ class Extractor:
         self.extractor_api_url = extractor_api_url
         self.bad_characters_table = str.maketrans('', '', '\t\r\n')
 
-    def post_request(self, url, code_string):
+    @staticmethod
+    def post_request(url, code_string):
         return requests.post(url, data=json.dumps({"code": code_string, "decompose": True}, separators=(',', ':')))
 
     def extract_paths(self, code_string):

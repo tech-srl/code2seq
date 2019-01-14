@@ -1,4 +1,3 @@
-import json
 import re
 import subprocess
 import sys
@@ -123,15 +122,6 @@ class PredictionResults:
     def append_prediction(self, name, current_timestep_paths):
         self.predictions.append(SingleTimeStepPrediction(name, current_timestep_paths))
 
-    def get_token_representation(self, name, node_id, token_occurr):
-        return {'name': name, 'node_id': node_id}
-
-    def append_attention_paths_for_timestep(self, current_timestep_paths):
-        current_timestep_results = []
-
-        self.attention_paths.append(current_timestep_results)
-
-
 class SingleTimeStepPrediction:
     def __init__(self, prediction, attention_paths):
         self.prediction = prediction
@@ -144,3 +134,14 @@ class SingleTimeStepPrediction:
                                      'token2': pc_info.token2}
                 paths_with_scores.append(path_context_dict)
             self.attention_paths = paths_with_scores
+
+
+class PathContextInformation:
+    def __init__(self, context):
+        self.token1 = context['name1']
+        self.longPath = context['path']
+        self.shortPath = context['shortPath']
+        self.token2 = context['name2']
+
+    def __str__(self):
+        return '%s,%s,%s' % (self.token1, self.shortPath, self.token2)

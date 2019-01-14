@@ -1,11 +1,13 @@
 import _pickle as pickle
 import os
 import time
+
 import numpy as np
 import tensorflow as tf
 
 import reader
 from common import Common
+
 
 class Model:
     topk = 10
@@ -100,7 +102,8 @@ class Model:
                 print('Finished %d epochs' % self.config.SAVE_EVERY_EPOCHS)
                 results, precision, recall, f1 = self.evaluate()
                 print('Accuracy after %d epochs: %.5f' % (self.epochs_trained, results))
-                print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (self.epochs_trained, precision, recall, f1))
+                print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (
+                    self.epochs_trained, precision, recall, f1))
                 if f1 > best_f1:
                     best_f1 = f1
                     best_f1_precision = precision
@@ -464,7 +467,7 @@ class Model:
                 inputs=flat_paths,
                 dtype=tf.float32,
                 sequence_length=lengths
-            )  
+            )
             final_rnn_state = state.h  # (batch * max_contexts, rnn_size)
 
         return tf.reshape(final_rnn_state,
@@ -500,7 +503,7 @@ class Model:
             context_embed = tf.nn.dropout(context_embed, self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
 
         batched_embed = tf.layers.dense(inputs=context_embed, units=self.config.DECODER_SIZE,
-                                     activation=tf.nn.tanh, trainable=not is_evaluating)
+                                        activation=tf.nn.tanh, trainable=not is_evaluating)
 
         return batched_embed
 
@@ -601,7 +604,8 @@ class Model:
             results.append((true_target_strings, predicted_strings, top_scores, attention_per_path))
         return results
 
-    def get_attention_per_path(self, source_strings, path_strings, target_strings, attention_weights):
+    @staticmethod
+    def get_attention_per_path(source_strings, path_strings, target_strings, attention_weights):
         # attention_weights:  (time, contexts)
         results = []
         for time_step in attention_weights:

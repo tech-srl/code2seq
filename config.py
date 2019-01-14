@@ -9,15 +9,15 @@ class Config:
         config.TEST_BATCH_SIZE = 256
         config.READER_NUM_PARALLEL_BATCHES = 1
         config.BATCH_QUEUE_SIZE = 100000
-        config.CSV_BUFFER_SIZE = 100*1024*1024 # 100 MB
+        config.CSV_BUFFER_SIZE = 100 * 1024 * 1024  # 100 MB
         config.TRAIN_PATH = args.data_path
-        config.TEST_PATH = args.test_path if args.test_path is not None else ''
+        config.TEST_PATH = args.test_path
         config.DATA_NUM_CONTEXTS = 0
         config.MAX_CONTEXTS = 200
         config.SUBTOKENS_VOCAB_MAX_SIZE = 190000
         config.TARGET_VOCAB_MAX_SIZE = 27000
         config.EMBEDDINGS_SIZE = 128
-        config.RNN_SIZE = 128 * 2 # Two LSTMs to embed paths, each of size 128
+        config.RNN_SIZE = 128 * 2  # Two LSTMs to embed paths, each of size 128
         config.DECODER_SIZE = 320
         config.NUM_DECODER_LAYERS = 1
         config.SAVE_PATH = args.save_path_prefix
@@ -53,7 +53,7 @@ class Config:
         self.BATCH_QUEUE_SIZE = 0
         self.CSV_BUFFER_SIZE = None
         self.TRAIN_PATH = ''
-        self.TEST_PATH = ''
+        self.TEST_PATH = None
         self.DATA_NUM_CONTEXTS = 0
         self.MAX_CONTEXTS = 0
         self.SUBTOKENS_VOCAB_MAX_SIZE = 0
@@ -92,7 +92,7 @@ class Config:
         config.SUBTOKENS_VOCAB_MAX_SIZE = 190000
         config.TARGET_VOCAB_MAX_SIZE = 27000
         config.EMBEDDINGS_SIZE = 19
-        config.RNN_SIZE = 10 # Two LSTMs to embed paths, each of size 128
+        config.RNN_SIZE = 10  # Two LSTMs to embed paths, each of size 128
         config.DECODER_SIZE = 11
         config.NUM_DECODER_LAYERS = 1
         config.SAVE_PATH = args.save_path_prefix

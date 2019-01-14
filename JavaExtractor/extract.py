@@ -1,16 +1,13 @@
 #!/usr/bin/python
 
+import itertools
 import multiprocessing
 import os
-import sys
 import shutil
 import subprocess
-from threading import Timer
 import sys
 from argparse import ArgumentParser
-from subprocess import Popen, PIPE, STDOUT, call
-
-import itertools
+from threading import Timer
 
 
 def get_immediate_subdirectories(a_dir):
@@ -20,8 +17,10 @@ def get_immediate_subdirectories(a_dir):
 
 TMP_DIR = ""
 
+
 def ParallelExtractDir(args, dir):
     ExtractFeaturesForDir(args, dir, "")
+
 
 def ExtractFeaturesForDir(args, dir, prefix):
     command = ['java', '-cp', args.jar, 'JavaExtractor.App',
@@ -66,7 +65,7 @@ def ExtractFeaturesForDirsList(args, dirs):
     try:
         p = multiprocessing.Pool(4)
         p.starmap(ParallelExtractDir, zip(itertools.repeat(args), dirs))
-        #for dir in dirs:
+        # for dir in dirs:
         #    ExtractFeaturesForDir(args, dir, '')
         output_files = os.listdir(TMP_DIR)
         for f in output_files:
@@ -94,4 +93,3 @@ if __name__ == '__main__':
         if len(subdirs) == 0:
             subdirs = [args.dir]
         ExtractFeaturesForDirsList(args, subdirs)
-    

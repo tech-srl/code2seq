@@ -16,7 +16,8 @@ class InteractivePredictor:
         self.config = config
         self.path_extractor = Extractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=2)
 
-    def read_file(self, input_filename):
+    @staticmethod
+    def read_file(input_filename):
         with open(input_filename, 'r') as file:
             return file.readlines()
 
@@ -46,8 +47,8 @@ class InteractivePredictor:
                         print('TIMESTEP: %d\t: %s' % (timestep, single_timestep_prediction.prediction))
                         for attention_obj in single_timestep_prediction.attention_paths:
                             print('%f\tcontext: %s,%s,%s' % (
-                            attention_obj['score'], attention_obj['token1'], attention_obj['path'],
-                            attention_obj['token2']))
+                                attention_obj['score'], attention_obj['token1'], attention_obj['path'],
+                                attention_obj['token2']))
                 else:
                     print('Predicted:')
                     for predicted_seq in method_prediction.predictions:

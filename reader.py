@@ -27,8 +27,9 @@ class Reader:
     def __init__(self, subtoken_to_index, target_to_index, node_to_index, config, is_evaluating=False):
         self.config = config
         self.file_path = config.TEST_PATH if is_evaluating else (config.TRAIN_PATH + '.train.c2s')
-        if not os.path.exists(self.file_path):
-            print('%s cannot find file: %s' % ('Evaluation reader' if is_evaluating else 'Train reader', self.file_path))
+        if self.file_path is not None and not os.path.exists(self.file_path):
+            print(
+                '%s cannot find file: %s' % ('Evaluation reader' if is_evaluating else 'Train reader', self.file_path))
         self.batch_size = config.TEST_BATCH_SIZE if is_evaluating else config.BATCH_SIZE
         self.is_evaluating = is_evaluating
 
@@ -38,28 +39,29 @@ class Reader:
         self.subtoken_table = Reader.get_subtoken_table(subtoken_to_index)
         self.target_table = Reader.get_target_table(target_to_index)
         self.node_table = Reader.get_node_table(node_to_index)
-        self.output_tensors = self.compute_output()
+        if self.file_path is not None:
+            self.output_tensors = self.compute_output()
 
     @classmethod
     def get_subtoken_table(cls, subtoken_to_index):
         if cls.class_subtoken_table is None:
-            cls.class_subtoken_table = cls.initalize_hash_map(subtoken_to_index, 1)
+            cls.class_subtoken_table = cls.initialize_hash_map(subtoken_to_index, 1)
         return cls.class_subtoken_table
 
     @classmethod
     def get_target_table(cls, target_to_index):
         if cls.class_target_table is None:
-            cls.class_target_table = cls.initalize_hash_map(target_to_index, 1)
+            cls.class_target_table = cls.initialize_hash_map(target_to_index, 1)
         return cls.class_target_table
 
     @classmethod
     def get_node_table(cls, path_to_index):
         if cls.class_node_table is None:
-            cls.class_node_table = cls.initalize_hash_map(path_to_index, 1)
+            cls.class_node_table = cls.initialize_hash_map(path_to_index, 1)
         return cls.class_node_table
 
     @classmethod
-    def initalize_hash_map(cls, word_to_index, default_value):
+    def initialize_hash_map(cls, word_to_index, default_value):
         return tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(list(word_to_index.keys()), list(word_to_index.values()),
                                                         key_dtype=tf.string,
@@ -182,7 +184,7 @@ class Reader:
                 dataset = dataset.repeat(self.config.SAVE_EVERY_EPOCHS)
             dataset = dataset.shuffle(self.config.BATCH_QUEUE_SIZE, reshuffle_each_iteration=True)
         dataset = dataset.apply(tf.data.experimental.map_and_batch(
-            map_func=self.process_dataset, batch_size=self.batch_size, 
+            map_func=self.process_dataset, batch_size=self.batch_size,
             num_parallel_batches=self.config.READER_NUM_PARALLEL_BATCHES))
         dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
         self.iterator = dataset.make_initializable_iterator()
