@@ -182,7 +182,8 @@ class Reader:
                 dataset = dataset.repeat(self.config.SAVE_EVERY_EPOCHS)
             dataset = dataset.shuffle(self.config.BATCH_QUEUE_SIZE, reshuffle_each_iteration=True)
         dataset = dataset.apply(tf.data.experimental.map_and_batch(
-            map_func=self.process_dataset, batch_size=self.batch_size, num_parallel_batches=self.config.NUM_BATCHING_THREADS))
+            map_func=self.process_dataset, batch_size=self.batch_size, 
+            num_parallel_batches=self.config.READER_NUM_PARALLEL_BATCHES))
         dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
         self.iterator = dataset.make_initializable_iterator()
         self.reset_op = self.iterator.initializer
@@ -203,8 +204,7 @@ if __name__ == '__main__':
             self.TRAIN_PATH = self.TEST_PATH = 'test_input/test_input'
             self.BATCH_SIZE = 2
             self.TEST_BATCH_SIZE = self.BATCH_SIZE
-            self.PREFETCH_NUM_BATCHES = 1
-            self.NUM_BATCHING_THREADS = 1
+            self.READER_NUM_PARALLEL_BATCHES = 1
             self.READING_BATCH_SIZE = 2
             self.BATCH_QUEUE_SIZE = 100
             self.MAX_CONTEXTS = 4

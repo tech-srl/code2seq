@@ -7,10 +7,9 @@ class Config:
         config.PATIENCE = 10
         config.BATCH_SIZE = 512
         config.TEST_BATCH_SIZE = 256
-        config.PREFETCH_NUM_BATCHES = 100
-        config.NUM_BATCHING_THREADS = 4
+        config.READER_NUM_PARALLEL_BATCHES = 1
         config.BATCH_QUEUE_SIZE = 100000
-        config.CSV_BUFFER_SIZE = 10*1024*1024 # 10 MB
+        config.CSV_BUFFER_SIZE = 100*1024*1024 # 100 MB
         config.TRAIN_PATH = args.data_path
         config.TEST_PATH = args.test_path if args.test_path is not None else ''
         config.DATA_NUM_CONTEXTS = 0
@@ -50,8 +49,7 @@ class Config:
         self.PATIENCE = 0
         self.BATCH_SIZE = 0
         self.TEST_BATCH_SIZE = 0
-        self.PREFETCH_NUM_BATCHES = 0
-        self.NUM_BATCHING_THREADS = 0
+        self.READER_NUM_PARALLEL_BATCHES = 0
         self.BATCH_QUEUE_SIZE = 0
         self.CSV_BUFFER_SIZE = None
         self.TRAIN_PATH = ''
@@ -84,8 +82,7 @@ class Config:
         config.PATIENCE = 200
         config.BATCH_SIZE = 7
         config.TEST_BATCH_SIZE = 7
-        config.PREFETCH_NUM_BATCHES = 100
-        config.NUM_BATCHING_THREADS = 1
+        config.READER_NUM_PARALLEL_BATCHES = 1
         config.BATCH_QUEUE_SIZE = 10
         config.CSV_BUFFER_SIZE = None
         config.TRAIN_PATH = args.data_path
