@@ -8,9 +8,9 @@ class Config:
         config.BATCH_SIZE = 512
         config.TEST_BATCH_SIZE = 256
         config.PREFETCH_NUM_BATCHES = 100
-        config.NUM_BATCHING_THREADS = 7
+        config.NUM_BATCHING_THREADS = 4
         config.BATCH_QUEUE_SIZE = 100000
-        config.CSV_BUFFER_SIZE = 1024*1024*1024 # 1 GB
+        config.CSV_BUFFER_SIZE = 10*1024*1024 # 10 MB
         config.TRAIN_PATH = args.data_path
         config.TEST_PATH = args.test_path if args.test_path is not None else ''
         config.DATA_NUM_CONTEXTS = 0
@@ -21,7 +21,7 @@ class Config:
         config.RNN_SIZE = 128 * 2 # Two LSTMs to embed paths, each of size 128
         config.DECODER_SIZE = 320
         config.NUM_DECODER_LAYERS = 1
-        config.SAVE_PATH = args.save_path
+        config.SAVE_PATH = args.save_path_prefix
         config.LOAD_PATH = args.load_path
         config.MAX_PATH_LENGTH = 8 + 1
         config.MAX_NAME_PARTS = 5
@@ -98,7 +98,7 @@ class Config:
         config.RNN_SIZE = 10 # Two LSTMs to embed paths, each of size 128
         config.DECODER_SIZE = 11
         config.NUM_DECODER_LAYERS = 1
-        config.SAVE_PATH = args.save_path
+        config.SAVE_PATH = args.save_path_prefix
         config.LOAD_PATH = args.load_path
         config.MAX_PATH_LENGTH = 8 + 1
         config.MAX_NAME_PARTS = 5

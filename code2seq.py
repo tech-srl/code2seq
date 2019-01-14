@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_argument("-te", "--test", dest="test_path",
                         help="path to test file", metavar="FILE", required=False)
 
-    parser.add_argument("-s", "--save", dest="save_path",
+    parser.add_argument("-s", "--save_prefix", dest="save_path_prefix",
                         help="path to save file", metavar="FILE", required=False)
     parser.add_argument("-l", "--load", dest="load_path",
                         help="path to saved file", metavar="FILE", required=False)

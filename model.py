@@ -48,6 +48,7 @@ class Model:
             self.node_to_index, self.index_to_node, self.nodes_vocab_size = \
                 Common.load_vocab_from_dict(node_to_count, add_values=[Common.PAD, Common.UNK])
             print('Loaded nodes vocab. size: %d' % self.nodes_vocab_size)
+            self.epochs_trained = 0
 
     def close_session(self):
         self.sess.close()
@@ -95,20 +96,18 @@ class Model:
 
 
             except tf.errors.OutOfRangeError:
-                epoch_num = iteration * self.config.SAVE_EVERY_EPOCHS
+                self.epochs_trained += self.config.SAVE_EVERY_EPOCHS
                 print('Finished %d epochs' % self.config.SAVE_EVERY_EPOCHS)
                 results, precision, recall, f1 = self.evaluate()
-                print('Accuracy after %d epochs: %.5f' % (epoch_num, results))
-                print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (epoch_num, precision, recall, f1))
+                print('Accuracy after %d epochs: %.5f' % (self.epochs_trained, results))
+                print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (self.epochs_trained, precision, recall, f1))
                 if f1 > best_f1:
                     best_f1 = f1
                     best_f1_precision = precision
                     best_f1_recall = recall
-                    best_epoch = epoch_num
+                    best_epoch = self.epochs_trained
                     epochs_no_improve = 0
-                    save_target = self.config.SAVE_PATH + '_iter' + str(epoch_num)
-                    self.save_model(self.sess, save_target)
-                    print('Saved after %d epochs in: %s' % (epoch_num, save_target))
+                    self.save_model(self.sess, self.config.SAVE_PATH)
                 else:
                     epochs_no_improve += self.config.SAVE_EVERY_EPOCHS
                     if epochs_no_improve >= self.config.PATIENCE:
@@ -339,6 +338,7 @@ class Model:
                                                         target_input=target_index, batch_size=batch_size,
                                                         batched_contexts=batched_contexts,
                                                         valid_mask=valid_context_mask)
+            step = tf.Variable(0, trainable=False)
             self.saver = tf.train.Saver(max_to_keep=10)
             logits = outputs.rnn_output  # (batch, max_output_length, dim * 2 + rnn_size)
 
@@ -348,7 +348,6 @@ class Model:
             loss = tf.reduce_sum(crossent * target_words_nonzero) / tf.to_float(batch_size)
 
             if self.config.USE_NESTEROV:
-                step = tf.Variable(0, trainable=False)
                 learning_rate = tf.train.exponential_decay(0.01, step * self.config.BATCH_SIZE,
                                                            self.num_training_examples,
                                                            0.95, staircase=True)
@@ -474,7 +473,6 @@ class Model:
     def compute_contexts(self, subtoken_vocab, nodes_vocab, source_input, nodes_input,
                          target_input, valid_mask, path_source_lengths, path_lengths, path_target_lengths,
                          is_evaluating=False):
-        max_contexts = tf.shape(source_input)[1]
 
         source_word_embed = tf.nn.embedding_lookup(params=subtoken_vocab,
                                                    ids=source_input)  # (batch, max_contexts, max_name_parts, dim)
@@ -616,12 +614,13 @@ class Model:
         return results
 
     def save_model(self, sess, path):
-        dirname = os.path.dirname(path)
+        save_target = path + '_iter%d' % self.epochs_trained
+        dirname = os.path.dirname(save_target)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        self.saver.save(sess, path)
+        self.saver.save(sess, save_target)
 
-        dictionaries_path = path + '.dict'
+        dictionaries_path = save_target + '.dict'
         with open(dictionaries_path, 'wb') as file:
             pickle.dump(self.subtoken_to_index, file)
             pickle.dump(self.index_to_subtoken, file)
@@ -636,7 +635,9 @@ class Model:
             pickle.dump(self.nodes_vocab_size, file)
 
             pickle.dump(self.num_training_examples, file)
+            pickle.dump(self.epochs_trained, file)
             pickle.dump(self.config, file)
+        print('Saved after %d epochs in: %s' % (self.epochs_trained, save_target))
 
     def load_model(self, sess):
         if not sess is None:
@@ -659,6 +660,7 @@ class Model:
             self.nodes_vocab_size = pickle.load(file)
 
             self.num_training_examples = pickle.load(file)
+            self.epochs_trained = pickle.load(file)
             saved_config = pickle.load(file)
             self.config.take_model_hyperparams_from(saved_config)
             print('Done loading dictionaries')

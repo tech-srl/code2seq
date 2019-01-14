@@ -184,7 +184,6 @@ class Reader:
         dataset = dataset.apply(tf.data.experimental.map_and_batch(
             map_func=self.process_dataset, batch_size=self.batch_size, num_parallel_batches=self.config.NUM_BATCHING_THREADS))
         dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
-        #self.iterator = tf.data.Iterator.from_structure(dataset.output_types, dataset.output_shapes)
         self.iterator = dataset.make_initializable_iterator()
         self.reset_op = self.iterator.initializer
         return self.iterator.get_next()

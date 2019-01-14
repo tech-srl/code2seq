@@ -14,4 +14,4 @@ model_dir=models/${type}
 
 mkdir -p ${model_dir}
 set -e
-python3 -u code2seq.py --data ${data} --test ${test_data} --save ${model_dir}/saved_model
+python3 -u code2seq.py --data ${data} --test ${test_data} --save_prefix ${model_dir}/saved_model
