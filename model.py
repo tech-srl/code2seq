@@ -350,7 +350,7 @@ class Model:
                                                     maxlen=self.config.MAX_TARGET_PARTS + 1, dtype=tf.float32)
             loss = tf.reduce_sum(crossent * target_words_nonzero) / tf.to_float(batch_size)
 
-            if self.config.USE_NESTEROV:
+            if self.config.USE_MOMENTUM:
                 learning_rate = tf.train.exponential_decay(0.01, step * self.config.BATCH_SIZE,
                                                            self.num_training_examples,
                                                            0.95, staircase=True)

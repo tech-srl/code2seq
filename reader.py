@@ -182,7 +182,7 @@ class Reader:
         if not self.is_evaluating:
             if self.config.SAVE_EVERY_EPOCHS > 1:
                 dataset = dataset.repeat(self.config.SAVE_EVERY_EPOCHS)
-            dataset = dataset.shuffle(self.config.BATCH_QUEUE_SIZE, reshuffle_each_iteration=True)
+            dataset = dataset.shuffle(self.config.SHUFFLE_BUFFER_SIZE, reshuffle_each_iteration=True)
         dataset = dataset.apply(tf.data.experimental.map_and_batch(
             map_func=self.process_dataset, batch_size=self.batch_size,
             num_parallel_batches=self.config.READER_NUM_PARALLEL_BATCHES))
@@ -208,7 +208,7 @@ if __name__ == '__main__':
             self.TEST_BATCH_SIZE = self.BATCH_SIZE
             self.READER_NUM_PARALLEL_BATCHES = 1
             self.READING_BATCH_SIZE = 2
-            self.BATCH_QUEUE_SIZE = 100
+            self.SHUFFLE_BUFFER_SIZE = 100
             self.MAX_CONTEXTS = 4
             self.DATA_NUM_CONTEXTS = 4
             self.MAX_PATH_LENGTH = 3

@@ -8,7 +8,7 @@ class Config:
         config.BATCH_SIZE = 512
         config.TEST_BATCH_SIZE = 256
         config.READER_NUM_PARALLEL_BATCHES = 1
-        config.BATCH_QUEUE_SIZE = 100000
+        config.SHUFFLE_BUFFER_SIZE = 10000
         config.CSV_BUFFER_SIZE = 100 * 1024 * 1024  # 100 MB
         config.TRAIN_PATH = args.data_path
         config.TEST_PATH = args.test_path
@@ -30,7 +30,7 @@ class Config:
         config.BIRNN = True
         config.RANDOM_CONTEXTS = True
         config.BEAM_WIDTH = 0
-        config.USE_NESTEROV = True
+        config.USE_MOMENTUM = True
         config.RELEASE = args.release
         return config
 
@@ -50,7 +50,7 @@ class Config:
         self.BATCH_SIZE = 0
         self.TEST_BATCH_SIZE = 0
         self.READER_NUM_PARALLEL_BATCHES = 0
-        self.BATCH_QUEUE_SIZE = 0
+        self.SHUFFLE_BUFFER_SIZE = 0
         self.CSV_BUFFER_SIZE = None
         self.TRAIN_PATH = ''
         self.TEST_PATH = None
@@ -72,7 +72,7 @@ class Config:
         self.BIRNN = False
         self.RANDOM_CONTEXTS = True
         self.BEAM_WIDTH = 1
-        self.USE_NESTEROV = True
+        self.USE_MOMENTUM = True
         self.RELEASE = False
 
     def get_debug_config(args):
@@ -83,7 +83,7 @@ class Config:
         config.BATCH_SIZE = 7
         config.TEST_BATCH_SIZE = 7
         config.READER_NUM_PARALLEL_BATCHES = 1
-        config.BATCH_QUEUE_SIZE = 10
+        config.SHUFFLE_BUFFER_SIZE = 10
         config.CSV_BUFFER_SIZE = None
         config.TRAIN_PATH = args.data_path
         config.TEST_PATH = args.test_path if args.test_path is not None else ''
@@ -105,6 +105,6 @@ class Config:
         config.BIRNN = True
         config.RANDOM_CONTEXTS = True
         config.BEAM_WIDTH = 0
-        config.USE_NESTEROV = False
+        config.USE_MOMENTUM = False
         config.RELEASE = args.release
         return config
