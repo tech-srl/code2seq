@@ -23,7 +23,7 @@ def ParallelExtractDir(args, dir):
 
 
 def ExtractFeaturesForDir(args, dir, prefix):
-    command = ['java', '-cp', args.jar, 'JavaExtractor.App',
+    command = ['java', '-Xmx100g', '-XX:MaxNewSize=60g', '-cp', args.jar, 'JavaExtractor.App',
                '--max_path_length', str(args.max_path_length), '--max_path_width', str(args.max_path_width),
                '--dir', dir, '--num_threads', str(args.num_threads)]
 
@@ -63,7 +63,7 @@ def ExtractFeaturesForDirsList(args, dirs):
         shutil.rmtree(TMP_DIR, ignore_errors=True)
     os.makedirs(TMP_DIR)
     try:
-        p = multiprocessing.Pool(4)
+        p = multiprocessing.Pool(6)
         p.starmap(ParallelExtractDir, zip(itertools.repeat(args), dirs))
         # for dir in dirs:
         #    ExtractFeaturesForDir(args, dir, '')
