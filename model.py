@@ -296,7 +296,7 @@ class Model:
         throughput_message = "Prediction throughput: %d" % int(total_predictions / (elapsed if elapsed > 0 else 1))
         output_file.write(accuracy_message + '\n')
         output_file.write(throughput_message)
-        print(accuracy_message)
+        #print(accuracy_message)
         print(throughput_message)
 
     def build_training_graph(self, input_tensors):
