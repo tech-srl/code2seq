@@ -30,7 +30,7 @@ public class CommandLineValues {
 	@Option(name = "--max_code_len", required = false)
 	public int MaxCodeLength = 100;
 
-	@Option(name = "--max_file_length", required = false)
+	@Option(name = "--max_file_len", required = false)
 	public int MaxFileLength = 10000;
 
 	@Option(name = "--pretty_print", required = false)

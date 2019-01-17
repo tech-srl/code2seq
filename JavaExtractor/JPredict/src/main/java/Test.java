@@ -1,3 +1,3 @@
-/*void fooBar() {
+void fooBar() {
 	getValue("Hello World");
-}*/
+}

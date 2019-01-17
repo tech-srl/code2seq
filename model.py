@@ -384,7 +384,7 @@ class Model:
         attention_mechanism = tf.contrib.seq2seq.LuongAttention(
             num_units=self.config.DECODER_SIZE,
             memory=batched_contexts,
-            memory_sequence_length=num_contexts_per_example,
+            #memory_sequence_length=num_contexts_per_example,
         )
         # TF doesn't support beam search with alignment history
         should_save_alignment_history = is_evaluating and self.config.BEAM_WIDTH == 0
@@ -503,7 +503,7 @@ class Model:
             context_embed = tf.nn.dropout(context_embed, self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
 
         batched_embed = tf.layers.dense(inputs=context_embed, units=self.config.DECODER_SIZE,
-                                        activation=tf.nn.tanh, trainable=not is_evaluating)
+                                        activation=tf.nn.tanh, trainable=not is_evaluating, use_bias=False)
 
         return batched_embed
 
