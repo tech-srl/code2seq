@@ -3,7 +3,6 @@ package JavaExtractor;
 import JavaExtractor.Common.CommandLineValues;
 import JavaExtractor.Common.Common;
 import JavaExtractor.FeaturesEntities.ProgramFeatures;
-import com.github.javaparser.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

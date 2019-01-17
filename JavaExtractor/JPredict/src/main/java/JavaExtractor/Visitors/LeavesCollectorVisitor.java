@@ -14,7 +14,6 @@ import java.util.List;
 
 public class LeavesCollectorVisitor extends TreeVisitor {
     private final ArrayList<Node> m_Leaves = new ArrayList<>();
-    private int currentId = 1;
 
     @Override
     public void process(Node node) {

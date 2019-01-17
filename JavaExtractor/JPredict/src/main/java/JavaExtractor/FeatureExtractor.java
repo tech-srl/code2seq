@@ -7,12 +7,10 @@ import JavaExtractor.FeaturesEntities.ProgramFeatures;
 import JavaExtractor.FeaturesEntities.Property;
 import JavaExtractor.Visitors.FunctionVisitor;
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseException;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
