@@ -1,3 +1,5 @@
-void fooBar() {
-	getValue("Hello World");
+class Test {
+    void fooBar() {
+        System.out.println("Hello World");
+    }
 }

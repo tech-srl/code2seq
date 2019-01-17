@@ -19,7 +19,7 @@ Table of Contents
   * [Requirements](#requirements)
   * [Quickstart](#quickstart)
   * [Configuration](#configuration)
-  * [Features](#features)
+  * [Releasing a trained mode](#releasing-a-trained-model)
   * [Extending to other languages](#extending-to-other-languages)
   * [Citation](#citation)
 
@@ -34,14 +34,14 @@ Table of Contents
 ### Step 0: Cloning this repository
 ```
 git clone https://github.com/tech-srl/code2seq
-cd code2vec
+cd code2seq
 ```
 
 ### Step 1: Creating a new dataset from Java sources
-To have a preprocessed dataset to train a network on, you can either download our
-preprocessed dataset, or create a new dataset of your own.
+To obtain a preprocessed dataset to train a network on, you can either download our
+preprocessed dataset, or create a new dataset from Java source files.
 
-#### Download our preprocessed dataset Java-large dataset (~15M examples, compressed: 6.3G, extracted 32G)
+#### Download our preprocessed dataset Java-large dataset (~15M examples, compressed: 6.3G, extracted 32G) TODO
 ```
 wget https://s3.amazonaws.com/code2vec/data/java14m_data.tar.gz
 tar -xvzf java14m_data.tar.gz
@@ -50,15 +50,15 @@ This will create a data/java14m/ sub-directory, containing the files that hold t
 and a vocabulary file for various dataset properties.
 
 #### Creating and preprocessing a new Java dataset
-In order to create and preprocess a new dataset (for example, to compare code2vec to another model on another dataset):
+To create and preprocess a new dataset (for example, to compare code2seq to another model on another dataset):
   * Edit the file [preprocess.sh](preprocess.sh) using the instructions there, pointing it to the correct training, validation and test directories.
   * Run the preprocess.sh file:
-> source preprocess.sh
+> bash preprocess.sh
 
-### Step 2: Training a model
+### Step 2: Training a model TODO
 You can either download an already-trained model, or train a new model using a preprocessed dataset.
 
-#### Downloading a trained model (1.4G)
+#### Downloading a trained model (1.4G) TODO
 We already trained a model for 8 epochs on the data that was preprocessed in the previous step.
 The number of epochs was chosen using [early stopping](https://en.wikipedia.org/wiki/Early_stopping), as the version that maximized the F1 score on the validation set.
 ```
@@ -66,10 +66,11 @@ wget https://s3.amazonaws.com/code2vec/model/java14m_model.tar.gz
 tar -xvzf java14m_model.tar.gz
 ```
 
-##### Note:
-This trained model is in a "released" state, which means that we stripped it from its training parameters and can thus be used for inference, but cannot be further trained. If you use this trained model in the next steps, use 'saved_model_iter8.release' instead of 'saved_model_iter8' in every command line example that loads the model such as: '--load models/java14_model/saved_model_iter8'. To read how to release a model, see [Releasing the model](#releasing-the-model).
+##### Note: TODO
+This trained model is in a "released" state, which means that we stripped it from its training parameters and can thus be used for inference, but cannot be further trained. 
+If you use this trained model in the next steps, use 'saved_model_iter8.release' instead of 'saved_model_iter8' in every command line example that loads the model such as: '--load models/java14_model/saved_model_iter8'. To read how to release a model, see [Releasing a trained model](#releasing-a-trained-model).
 
-#### Training a model from scratch
+#### Training a model from scratch TODO
 To train a model from scratch:
   * Edit the file [train.sh](train.sh) to point it to the right preprocessed data. By default, 
   it points to our "java14m" dataset that was preprocessed in the previous step.
@@ -80,30 +81,27 @@ To train a model from scratch:
 source train.sh
 ```
 
-##### Notes:
-  1. By default, the network is evaluated on the validation set after every training epoch.
-  2. The newest 10 versions are kept (older are deleted automatically). This can be changed, but will be more space consuming.
-  3. By default, the network is training for 20 epochs.
-These settings can be changed by simply editing the file [common.py](common.py).
-Training on a Tesla v100 GPU takes about 50 minutes per epoch. 
-Training on Tesla K80 takes about 4 hours per epoch.
+### Step 3: Evaluating a trained model TODO
+After `config.PATIENCE` iterations of no improvement on the validation set, training stops by itself.
 
-### Step 3: Evaluating a trained model
-Once the score on the validation set stops improving over time, you can stop the training process (by killing it)
-and pick the iteration that performed the best on the validation set.
 Suppose that iteration #8 is our chosen model, run:
 ```
 python3 code2vec.py --load models/java14_model/saved_model_iter8 --test data/java14m/java14m.test.c2v
 ```
-While evaluating, a file named "log.txt" is written with each test example name and the model's prediction.
+While evaluating, a file named "log.txt" is written to the same dir as the saved models, with each test example name and the model's prediction.
 
-### Step 4: Manual examination of a trained model
+### Step 4: Manual examination of a trained model TODO
 To manually examine a trained model, run:
 ```
-python3 code2vec.py --load models/java14_model/saved_model_iter8 --predict
+python3 code2seq.py --load models/java14_model/saved_model_iter8 --predict
 ```
 After the model loads, follow the instructions and edit the file Input.java and enter a Java 
 method or code snippet, and examine the model's predictions and attention scores.
+
+#### Note: 
+Due to TensorFlow's limitations, if using beam search (`config.BEAM_WIDTH > 0`) then `BEAM_WIDTH` hypotheses will be printed, but
+without attention weights. If not using beam search (`config.BEAM_WIDTH == 0`) then a single hypothesis will be printed with 
+the attention weights in every decoding timestep. 
 
 ## Configuration
 Changing hyper-parameters is possible by editing the file [config.py](config
@@ -158,10 +156,8 @@ Beam width in beam search. Inactive when 0.
 #### config.USE_MOMENTUM = True
 If True, use Momentum optimizer with nesterov. If False, use Adam 
 (Adam converges in fewer epochs, Momentum leads to slightly better results). 
-## Features
-Code2vec supports the following features: 
 
-### Releasing the model
+## Releasing a trained model TODO
 If you wish to keep a trained model for inference only (without the ability to continue training it) you can
 release the model using:
 ```
@@ -185,7 +181,7 @@ Basically, an extractor should be able to output for each directory containing s
 `my|key,StringExression|MethodCall|Name,get|value`
 Here `my|key` and `get|value` are tokens, and `StringExression|MethodCall|Name` is the syntactic path that connects them. 
 
-## Citation
+## Citation TODO
 
 [code2vec: Learning Distributed Representations of Code](https://arxiv.org/pdf/1803.09473)
 

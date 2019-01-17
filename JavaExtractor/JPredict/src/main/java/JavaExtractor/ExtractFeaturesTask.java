@@ -1,5 +1,11 @@
 package JavaExtractor;
 
+import JavaExtractor.Common.CommandLineValues;
+import JavaExtractor.Common.Common;
+import JavaExtractor.FeaturesEntities.ProgramFeatures;
+import com.github.javaparser.ParseException;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -8,90 +14,76 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.apache.commons.lang3.StringUtils;
+class ExtractFeaturesTask implements Callable<Void> {
+    private final CommandLineValues m_CommandLineValues;
+    private final Path filePath;
 
-import com.github.javaparser.ParseException;
-import com.github.javaparser.ast.CompilationUnit;
+    public ExtractFeaturesTask(CommandLineValues commandLineValues, Path path) {
+        m_CommandLineValues = commandLineValues;
+        this.filePath = path;
+    }
 
-import JavaExtractor.Common.CommandLineValues;
-import JavaExtractor.Common.Common;
-import JavaExtractor.FeaturesEntities.ProgramFeatures;
+    @Override
+    public Void call() {
+        processFile();
+        return null;
+    }
 
-public class ExtractFeaturesTask implements Callable<Void> {
-	CommandLineValues m_CommandLineValues;
-	Path filePath;
+    public void processFile() {
+        ArrayList<ProgramFeatures> features;
+        try {
+            features = extractSingleFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (features == null) {
+            return;
+        }
 
-	public ExtractFeaturesTask(CommandLineValues commandLineValues, Path path) {
-		m_CommandLineValues = commandLineValues;
-		this.filePath = path;
-	}
+        String toPrint = featuresToString(features);
+        if (toPrint.length() > 0) {
+            System.out.println(toPrint);
+        }
+    }
 
-	@Override
-	public Void call() throws Exception {
-		//System.err.println("Extracting file: " + filePath);
-		processFile();
-		//System.err.println("Done with file: " + filePath);
-		return null;
-	}
+    private ArrayList<ProgramFeatures> extractSingleFile() throws IOException {
+        String code;
 
-	public void processFile() {
-		ArrayList<ProgramFeatures> features;
-		try {
-			features = extractSingleFile();
-		} catch (ParseException | IOException e) {
-			e.printStackTrace();
-			return;
-		}
-		if (features == null) {
-			return;
-		}
-		
-		String toPrint = featuresToString(features);
-		if (toPrint.length() > 0) {
-			System.out.println(toPrint);				
-		}
-	}
+        if (Files.lines(filePath, Charset.defaultCharset()).count() > m_CommandLineValues.MaxFileLength) {
+            return new ArrayList<>();
+        }
+        try {
+            code = new String(Files.readAllBytes(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+            code = Common.EmptyString;
+        }
+        FeatureExtractor featureExtractor = new FeatureExtractor(m_CommandLineValues);
 
-	public ArrayList<ProgramFeatures> extractSingleFile() throws ParseException, IOException {
-		String code = null;
+        return featureExtractor.extractFeatures(code);
+    }
 
-		if (Files.lines(filePath, Charset.defaultCharset()).count() > m_CommandLineValues.MaxFileLength) {
-			return new ArrayList<>();
-		}
-		try {
-			code = new String(Files.readAllBytes(filePath));
-		} catch (IOException e) {
-			e.printStackTrace();
-			code = Common.EmptyString;
-		}
-		FeatureExtractor featureExtractor = new FeatureExtractor(m_CommandLineValues);
+    public String featuresToString(ArrayList<ProgramFeatures> features) {
+        if (features == null || features.isEmpty()) {
+            return Common.EmptyString;
+        }
 
-		ArrayList<ProgramFeatures> features = featureExtractor.extractFeatures(code);
+        List<String> methodsOutputs = new ArrayList<>();
 
-		return features;
-	}
+        for (ProgramFeatures singleMethodFeatures : features) {
+            StringBuilder builder = new StringBuilder();
 
-	public String featuresToString(ArrayList<ProgramFeatures> features) {
-		if (features == null || features.isEmpty()) {
-			return Common.EmptyString;
-		}
+            String toPrint = singleMethodFeatures.toString();
+            if (m_CommandLineValues.PrettyPrint) {
+                toPrint = toPrint.replace(" ", "\n\t");
+            }
+            builder.append(toPrint);
 
-		List<String> methodsOutputs = new ArrayList<>();
 
-		for (ProgramFeatures singleMethodfeatures : features) {
-			StringBuilder builder = new StringBuilder();
-			
-			String toPrint = Common.EmptyString;
-			toPrint = singleMethodfeatures.toString();
-			if (m_CommandLineValues.PrettyPrint) {
-				toPrint = toPrint.replace(" ", "\n\t");
-			}
-			builder.append(toPrint);
-			
+            methodsOutputs.add(builder.toString());
 
-			methodsOutputs.add(builder.toString());
-
-		}
-		return StringUtils.join(methodsOutputs, "\n");
-	}
+        }
+        return StringUtils.join(methodsOutputs, "\n");
+    }
 }
