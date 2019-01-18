@@ -40,7 +40,11 @@ public class FunctionVisitor extends VoidVisitorAdapter<Object> {
 
         if (node.getBody() != null) {
             long methodLength = getMethodLength(node.getBody().toString());
-            if (methodLength >= m_CommandLineValues.MinCodeLength && methodLength <= m_CommandLineValues.MaxCodeLength) {
+            if (m_CommandLineValues.MaxCodeLength > 0) {
+                if (methodLength >= m_CommandLineValues.MinCodeLength && methodLength <= m_CommandLineValues.MaxCodeLength) {
+                    m_Methods.add(new MethodContent(leaves, splitName));
+                }
+            } else {
                 m_Methods.add(new MethodContent(leaves, splitName));
             }
         }

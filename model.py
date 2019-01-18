@@ -296,7 +296,7 @@ class Model:
         throughput_message = "Prediction throughput: %d" % int(total_predictions / (elapsed if elapsed > 0 else 1))
         output_file.write(accuracy_message + '\n')
         output_file.write(throughput_message)
-        #print(accuracy_message)
+        # print(accuracy_message)
         print(throughput_message)
 
     def build_training_graph(self, input_tensors):
@@ -342,7 +342,7 @@ class Model:
                                                         batched_contexts=batched_contexts,
                                                         valid_mask=valid_context_mask)
             step = tf.Variable(0, trainable=False)
-            self.saver = tf.train.Saver(max_to_keep=10)
+
             logits = outputs.rnn_output  # (batch, max_output_length, dim * 2 + rnn_size)
 
             crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=target_index, logits=logits)
@@ -359,6 +359,7 @@ class Model:
             else:
                 optimizer = tf.train.AdamOptimizer()
                 train_op = optimizer.minimize(loss)
+            self.saver = tf.train.Saver(max_to_keep=10)
 
         return train_op, loss
 
@@ -383,8 +384,7 @@ class Model:
                                                                      multiplier=self.config.BEAM_WIDTH)
         attention_mechanism = tf.contrib.seq2seq.LuongAttention(
             num_units=self.config.DECODER_SIZE,
-            memory=batched_contexts,
-            #memory_sequence_length=num_contexts_per_example,
+            memory=batched_contexts
         )
         # TF doesn't support beam search with alignment history
         should_save_alignment_history = is_evaluating and self.config.BEAM_WIDTH == 0

@@ -49,7 +49,8 @@ class ExtractFeaturesTask implements Callable<Void> {
     private ArrayList<ProgramFeatures> extractSingleFile() throws IOException {
         String code;
 
-        if (Files.lines(filePath, Charset.defaultCharset()).count() > m_CommandLineValues.MaxFileLength) {
+        if (m_CommandLineValues.MaxFileLength > 0 &&
+                Files.lines(filePath, Charset.defaultCharset()).count() > m_CommandLineValues.MaxFileLength) {
             return new ArrayList<>();
         }
         try {

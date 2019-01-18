@@ -7,8 +7,8 @@ class Config:
         config.PATIENCE = 10
         config.BATCH_SIZE = 512
         config.TEST_BATCH_SIZE = 256
-        #config.READER_NUM_PARALLEL_BATCHES = 1
-        config.SHUFFLE_BUFFER_SIZE = 10000
+        config.READER_NUM_PARALLEL_BATCHES = 1
+        config.SHUFFLE_BUFFER_SIZE = 100000
         config.CSV_BUFFER_SIZE = 100 * 1024 * 1024  # 100 MB
         config.MAX_CONTEXTS = 200
         config.SUBTOKENS_VOCAB_MAX_SIZE = 190000
@@ -43,7 +43,7 @@ class Config:
         self.PATIENCE = 0
         self.BATCH_SIZE = 0
         self.TEST_BATCH_SIZE = 0
-        #self.READER_NUM_PARALLEL_BATCHES = 0
+        self.READER_NUM_PARALLEL_BATCHES
         self.SHUFFLE_BUFFER_SIZE = 0
         self.CSV_BUFFER_SIZE = None
         self.TRAIN_PATH = args.data_path
@@ -77,7 +77,7 @@ class Config:
         config.PATIENCE = 200
         config.BATCH_SIZE = 7
         config.TEST_BATCH_SIZE = 7
-        #config.READER_NUM_PARALLEL_BATCHES = 1  # removed for AUTOTUNE
+        config.READER_NUM_PARALLEL_BATCHES = 1
         config.SHUFFLE_BUFFER_SIZE = 10
         config.CSV_BUFFER_SIZE = None
         config.MAX_CONTEXTS = 5

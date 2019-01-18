@@ -185,8 +185,7 @@ class Reader:
             dataset = dataset.shuffle(self.config.SHUFFLE_BUFFER_SIZE, reshuffle_each_iteration=True)
         dataset = dataset.apply(tf.data.experimental.map_and_batch(
             map_func=self.process_dataset, batch_size=self.batch_size,
-            #num_parallel_batches=self.config.READER_NUM_PARALLEL_BATCHES,
-            num_parallel_calls=tf.contrib.data.AUTOTUNE))
+            num_parallel_batches=self.config.READER_NUM_PARALLEL_BATCHES))
         dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
         self.iterator = dataset.make_initializable_iterator()
         self.reset_op = self.iterator.initializer
