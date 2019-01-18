@@ -215,6 +215,7 @@ if __name__ == '__main__':
             self.MAX_NAME_PARTS = 2
             self.MAX_TARGET_PARTS = 4
             self.RANDOM_CONTEXTS = True
+            self.CSV_BUFFER_SIZE = None
 
 
     config = Config()
