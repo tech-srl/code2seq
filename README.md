@@ -41,13 +41,13 @@ cd code2seq
 To obtain a preprocessed dataset to train a network on, you can either download our
 preprocessed dataset, or create a new dataset from Java source files.
 
-#### Download our preprocessed dataset Java-large dataset (~15M examples, compressed: 6.3G, extracted 32G) TODO
+#### Download our preprocessed dataset Java-large dataset (~15M examples, compressed: 11G, extracted 122GB)
 ```
-wget https://s3.amazonaws.com/code2vec/data/java14m_data.tar.gz
-tar -xvzf java14m_data.tar.gz
+wget https://s3.amazonaws.com/code2seq/datasets/java-large-preprocessed.tar.gz
+tar -xvzf java-large-preprocessed.tar.gz
 ```
-This will create a data/java14m/ sub-directory, containing the files that hold that training, test and validation sets,
-and a vocabulary file for various dataset properties.
+This will create a data/java-large/ sub-directory, containing the files that hold that training, test and validation sets,
+and a dict file for various dataset properties.
 
 #### Creating and preprocessing a new Java dataset
 To create and preprocess a new dataset (for example, to compare code2seq to another model on another dataset):
@@ -55,7 +55,7 @@ To create and preprocess a new dataset (for example, to compare code2seq to anot
   * Run the preprocess.sh file:
 > bash preprocess.sh
 
-### Step 2: Training a model TODO
+### Step 2: Training a model
 You can either download an already-trained model, or train a new model using a preprocessed dataset.
 
 #### Downloading a trained model (1.4G) TODO
@@ -70,11 +70,11 @@ tar -xvzf java14m_model.tar.gz
 This trained model is in a "released" state, which means that we stripped it from its training parameters and can thus be used for inference, but cannot be further trained. 
 If you use this trained model in the next steps, use 'saved_model_iter8.release' instead of 'saved_model_iter8' in every command line example that loads the model such as: '--load models/java14_model/saved_model_iter8'. To read how to release a model, see [Releasing a trained model](#releasing-a-trained-model).
 
-#### Training a model from scratch TODO
+#### Training a model from scratch
 To train a model from scratch:
   * Edit the file [train.sh](train.sh) to point it to the right preprocessed data. By default, 
-  it points to our "java14m" dataset that was preprocessed in the previous step.
-  * Before training, you can edit the configuration hyper-parameters in the file [common.py](common.py),
+  it points to our "java-large" dataset that was preprocessed in the previous step.
+  * Before training, you can edit the configuration hyper-parameters in the file [config.py](config.py),
   as explained in [Configuration](#configuration).
   * Run the [train.sh](train.sh) script:
 ```
@@ -86,7 +86,7 @@ After `config.PATIENCE` iterations of no improvement on the validation set, trai
 
 Suppose that iteration #8 is our chosen model, run:
 ```
-python3 code2vec.py --load models/java14_model/saved_model_iter8 --test data/java14m/java14m.test.c2v
+python3 code2vec.py --load models/java-large/saved_model_iter8 --test data/java14m/java-large.test.c2s
 ```
 While evaluating, a file named "log.txt" is written to the same dir as the saved models, with each test example name and the model's prediction.
 
@@ -157,22 +157,22 @@ Beam width in beam search. Inactive when 0.
 If True, use Momentum optimizer with nesterov. If False, use Adam 
 (Adam converges in fewer epochs, Momentum leads to slightly better results). 
 
-## Releasing a trained model TODO
+## Releasing a trained model
 If you wish to keep a trained model for inference only (without the ability to continue training it) you can
 release the model using:
 ```
-python3 code2vec.py --load models/java14_model/saved_model_iter8 --release
+python3 code2seq.py --load models/java-large/saved_model_iter8 --release
 ```
 This will save a copy of the trained model with the '.release' suffix.
-A "released" model usually takes 3x less disk space.
+A "released" model usually takes ~3x less disk space.
 
 ## Extending to other languages  
-To extend code2vec to other languages other than Java and C#, a new extractor (similar to the [JavaExtractor](JavaExtractor))
+To extend code2seq to other languages other than Java and C#, a new extractor (similar to the [JavaExtractor](JavaExtractor))
 should be implemented, and be called by [preprocess.sh](preprocess.sh).
 Basically, an extractor should be able to output for each directory containing source files:
   * A single text file, where each row is an example.
   * Each example is a space-delimited list of fields, where:
-  1. The first field is the target label, internally delimited by the "|" character.
+  1. The first field is the target label, internally delimited by the "|" character (for example: `compare|ignore|case`
   2. Each of the following field are contexts, where each context has three components separated by commas (","). None of these components can include spaces nor commas.
   We refer to these three components as a token, a path, and another token, but in general other types of ternary contexts can be considered.  
   Each "token" component is a token in the code, split to subtokens using the "|" character.
@@ -181,15 +181,17 @@ Basically, an extractor should be able to output for each directory containing s
 `my|key,StringExression|MethodCall|Name,get|value`
 Here `my|key` and `get|value` are tokens, and `StringExression|MethodCall|Name` is the syntactic path that connects them. 
 
-## Citation TODO
+## Citation 
 
-[code2vec: Learning Distributed Representations of Code](https://arxiv.org/pdf/1803.09473)
+[code2seq: Generating Sequences from Structured Representations of Code](https://arxiv.org/pdf/1808.01400)
 
 ```
-@article{alon2018code2vec,
-  title={code2vec: Learning Distributed Representations of Code},
-  author={Alon, Uri and Zilberstein, Meital and Levy, Omer and Yahav, Eran},
-  journal={arXiv preprint arXiv:1803.09473},
-  year={2018}
+@inproceedings{
+    alon2018codeseq,
+    title={code2seq: Generating Sequences from Structured Representations of Code},
+    author={Uri Alon and Omer Levy and Eran Yahav},
+    booktitle={International Conference on Learning Representations},
+    year={2019},
+    url={https://openreview.net/forum?id=H1gKYo09tX},
 }
 ```
