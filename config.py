@@ -43,7 +43,7 @@ class Config:
         self.PATIENCE = 0
         self.BATCH_SIZE = 0
         self.TEST_BATCH_SIZE = 0
-        self.READER_NUM_PARALLEL_BATCHES
+        self.READER_NUM_PARALLEL_BATCHES = 0
         self.SHUFFLE_BUFFER_SIZE = 0
         self.CSV_BUFFER_SIZE = None
         self.TRAIN_PATH = args.data_path
