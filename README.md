@@ -24,10 +24,10 @@ Table of Contents
   * [Citation](#citation)
 
 ## Requirements
-  * [Python3](https://www.linuxbabe.com/ubuntu/install-python-3-6-ubuntu-16-04-16-10-17-04). 
-  * TensorFlow version 1.12 or newer ([install](https://www.tensorflow.org/install/install_linux)). To check TensorFlow version:
+  * [python3](https://www.linuxbabe.com/ubuntu/install-python-3-6-ubuntu-16-04-16-10-17-04) 
+  * TensorFlow 1.12 or newer ([install](https://www.tensorflow.org/install/install_linux)). To check TensorFlow version:
 > python3 -c 'import tensorflow as tf; print(tf.\_\_version\_\_)'
-  * For [creating a new dataset](#creating-and-preprocessing-a-new-java-dataset) or [manually examining a trained model](#step-4-manual-examination-of-a-trained-model) (any operation that requires parsing of a new code example) - [Java JDK](https://openjdk.java.net/install/)
+  * For [creating a new Java dataset](#creating-and-preprocessing-a-new-java-dataset) or [manually examining a trained model](#step-4-manual-examination-of-a-trained-model) (any operation that requires parsing of a new code example) - [Java JDK](https://openjdk.java.net/install/)
   * For creating a C# dataset: dotnet-core version 2.2 or newer.
 
 ## Quickstart
@@ -43,10 +43,12 @@ preprocessed dataset, or create a new dataset from Java source files.
 
 #### Download our preprocessed dataset Java-large dataset (~15M examples, compressed: 11G, extracted 122GB)
 ```
+mkdir data
+cd data
 wget https://s3.amazonaws.com/code2seq/datasets/java-large-preprocessed.tar.gz
 tar -xvzf java-large-preprocessed.tar.gz
 ```
-This will create a data/java-large/ sub-directory, containing the files that hold that training, test and validation sets,
+This will create a `data/java-large/` sub-directory, containing the files that hold that training, test and validation sets,
 and a dict file for various dataset properties.
 
 #### Creating and preprocessing a new Java dataset
@@ -95,7 +97,7 @@ To manually examine a trained model, run:
 ```
 python3 code2seq.py --load models/java14_model/saved_model_iter8 --predict
 ```
-After the model loads, follow the instructions and edit the file Input.java and enter a Java 
+After the model loads, follow the instructions and edit the file `Input.java` and enter a Java 
 method or code snippet, and examine the model's predictions and attention scores.
 
 #### Note: 
@@ -111,22 +113,22 @@ Here are some of the parameters and their description:
 #### config.NUM_EPOCHS = 20
 The max number of epochs to train the model. 
 #### config.SAVE_EVERY_EPOCHS = 1
-After how many training iterations a model should be saved and evaluated.
+The frequency, in epochs, of saving a model and evaluating on the validation set during training.
 #### config.PATIENCE = 10
-Controlling early stopping: how many epochs of no improvement should training continue before stopping  
+Controlling early stopping: how many epochs of no improvement should training continue before stopping.  
 #### config.BATCH_SIZE = 512
-Batch size in training.
+Batch size during training.
 #### config.TEST_BATCH_SIZE = 256
-Batch size in evaluating. Affects only the evaluation speed and memory consumption, does not affect the results.
+Batch size during evaluating. Affects only the evaluation speed and memory consumption, does not affect the results.
 #### config.SHUFFLE_BUFFER_SIZE = 10000
 The buffer size that the reader uses for shuffling the training data. 
 Controls the randomness of the data. 
-Increasing this value hurts training throughput 
+Increasing this value might hurt training throughput. 
 #### config.CSV_BUFFER_SIZE = 100 * 1024 * 1024  
 The buffer size (in bytes) of the CSV dataset reader.
 #### config.MAX_CONTEXTS = 200
 The number of contexts to sample in each example during training 
-(resampling a different subset every training iteration).
+(resampling a different subset of this size every training iteration).
 #### config.SUBTOKENS_VOCAB_MAX_SIZE = 190000
 The max size of the subtoken vocabulary.
 #### config.TARGET_VOCAB_MAX_SIZE = 27000
@@ -134,7 +136,7 @@ The max size of the target words vocabulary.
 #### config.EMBEDDINGS_SIZE = 128
 Embedding size for subtokens, AST nodes and target symbols.
 #### config.RNN_SIZE = 128 * 2 
-The total size of the two LSTMs that are used to embed the paths, or the single LSTM if `config.BIRNN` is `False`.
+The total size of the two LSTMs that are used to embed the paths if `config.BIRNN` is `True`, or the single LSTM if `config.BIRNN` is `False`.
 #### config.DECODER_SIZE = 320
 Size of each LSTM layer in the decoder.
 #### config.NUM_DECODER_LAYERS = 1
@@ -157,7 +159,7 @@ Beam width in beam search. Inactive when 0.
 If True, use Momentum optimizer with nesterov. If False, use Adam 
 (Adam converges in fewer epochs, Momentum leads to slightly better results). 
 
-## Releasing a trained model
+## Releasing a trained model TODO
 If you wish to keep a trained model for inference only (without the ability to continue training it) you can
 release the model using:
 ```
