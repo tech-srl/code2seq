@@ -7,7 +7,7 @@
 #   on the final (held-out) test set, change 'val' to 'test'.
 type=java-large
 dataset_name=java-large
-data_dir=data/${dataset_name}
+data_dir=data/java-large-full/java-large
 data=${data_dir}/${dataset_name}
 test_data=${data_dir}/${dataset_name}.test.c2s
 model_dir=models/${type}
