@@ -41,7 +41,7 @@ cd code2seq
 To obtain a preprocessed dataset to train a network on, you can either download our
 preprocessed dataset, or create a new dataset from Java source files.
 
-#### Download our preprocessed dataset Java-large dataset (~15M examples, compressed: 11G, extracted 122GB)
+#### Download our preprocessed dataset Java-large dataset (~16M examples, compressed: 11G, extracted 122GB)
 ```
 mkdir data
 cd data
