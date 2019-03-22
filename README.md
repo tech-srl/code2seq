@@ -197,7 +197,7 @@ To download the Java-small, Java-med and Java-large datasets used in the Code Su
   
 To download the preprocessed datasets, use:
   * [Java-small-preprocessed](https://s3.amazonaws.com/code2seq/datasets/java-small-preprocessed.tar.gz)
-  * Java-med-preprocessed (soon)
+  * [Java-med-preprocessed](https://s3.amazonaws.com/code2seq/datasets/java-med-preprocessed.tar.gz)
   * [Java-large-preprocessed](https://s3.amazonaws.com/code2seq/datasets/java-large-preprocessed.tar.gz)
 
 ### C#
