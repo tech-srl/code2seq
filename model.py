@@ -131,7 +131,7 @@ class Model:
 
     def trace(self, sum_loss, batch_num, multi_batch_start_time):
         multi_batch_elapsed = time.time() - multi_batch_start_time
-        avg_loss = sum_loss / (self.num_batches_to_log * self.config.BATCH_SIZE)
+        avg_loss = sum_loss / self.num_batches_to_log
         print('Average loss at batch %d: %f, \tthroughput: %d samples/sec' % (batch_num, avg_loss,
                                                                               self.config.BATCH_SIZE * self.num_batches_to_log / (
                                                                                   multi_batch_elapsed if multi_batch_elapsed > 0 else 1)))
