@@ -1,0 +1,10 @@
+requires landscape|boolean (){ return false; }
+get parent key|Object (){ return new ContactsUiKey(); }
+get parent key|Object (){ return new ContactsUiKey(); }
+get layout id|int (){ return R.layout.loose_screen; }
+get parent key|Object (){ return new EditContactKey(contactId); }
+to contact|Contact (){ return new Contact(id, name, email); }
+to string|String (){ return "Welcome!\nClick to continue."; }
+get parent key|Object (){ return new EditContactKey(contactId); }
+tear down services|void (@NonNull Services services){ }
+get layout id|int (){ return R.layout.landscape_screen; }
