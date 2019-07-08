@@ -3,7 +3,7 @@ This is an official implementation of the model described in:
 
 [Uri Alon](http://urialon.cswp.cs.technion.ac.il), [Shaked Brody](http://www.cs.technion.ac.il/people/shakedbr/), [Omer Levy](https://levyomer.wordpress.com) and [Eran Yahav](http://www.cs.technion.ac.il/~yahave/), "code2seq: Generating Sequences from Structured Representations of Code" [[PDF]](https://openreview.net/pdf?id=H1gKYo09tX)
 
-to appear in *ICLR'2019*
+Appeared in **ICLR'2019** (**poster** available [here](https://urialon.cswp.cs.technion.ac.il/wp-content/uploads/sites/83/2019/05/ICLR19_poster_code2seq.pdf))
 
 An **online demo** is available at [https://code2seq.org](https://code2seq.org).
 
