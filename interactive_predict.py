@@ -4,7 +4,7 @@ from extractor import Extractor
 SHOW_TOP_CONTEXTS = 10
 MAX_PATH_LENGTH = 8
 MAX_PATH_WIDTH = 2
-EXTRACTION_API = 'https://ff655m4ut8.execute-api.us-east-1.amazonaws.com/production/extractmethods'
+EXTRACTION_API = 'https://po3g2dx2qa.execute-api.us-east-1.amazonaws.com/production/extractmethods'
 
 
 class InteractivePredictor:
