@@ -22,6 +22,7 @@ Table of Contents
   * [Releasing a trained mode](#releasing-a-trained-model)
   * [Extending to other languages](#extending-to-other-languages)
   * [Datasets](#datasets)
+  * [Baselines](#baselines)
   * [Citation](#citation)
 
 ## Requirements
@@ -202,6 +203,50 @@ To download the preprocessed datasets, use:
 
 ### C#
 The C# dataset used in the Code Captioning task can be downloaded from the [CodeNN](https://github.com/sriniiyer/codenn/) repository.
+
+## Baselines
+### Using the trained model
+For the NMT baselines (BiLSTM, Transformer) we used the implementation of [OpenNMT-py](http://opennmt.net/OpenNMT-py/).
+The trained BiLSTM model is available here:
+`https://code2seq.s3.amazonaws.com/lstm_baseline/model_acc_62.88_ppl_12.03_e16.pt`
+
+Test+validation sources and targets:
+```
+https://code2seq.s3.amazonaws.com/lstm_baseline/test_expected_actual.txt
+https://code2seq.s3.amazonaws.com/lstm_baseline/test_source.txt
+https://code2seq.s3.amazonaws.com/lstm_baseline/test_target.txt
+https://code2seq.s3.amazonaws.com/lstm_baseline/val_source.txt
+https://code2seq.s3.amazonaws.com/lstm_baseline/val_target.txt
+```
+
+The command line for "translating" a "source" file to a "target" is:
+`python3 translate.py -model model_acc_62.88_ppl_12.03_e16.pt -src test_source.txt -output translation_epoch16.txt -gpu 0`
+
+This results in a `translation_epoch16.txt` which we compare to `test_target.txt` to compute the score.
+The file `test_expected_actual.txt` is a line-by-line concatenation of the true reference ("expected") with the corresponding prediction (the "actual").
+
+### Creating data for the baseline
+We first modified the JavaExtractor (the same one as in this) to locate the methods to train on and print them to a file where each method is a single line. This modification is currently not checked in, but instead of extracting paths, it just prints `node.toString()` and replaces "\n" with space, where `node` is the object holding the AST node of type `MethodDeclaration`.
+
+Then, we tokenized (including sub-tokenization of identifiers, i.e., `"ArrayList"-> ["Array","List"])` each method body using `javalang`, using [this](baseline_tokenization/subtokenize_nmt_baseline.py) script (which can be run on [this](baseline_tokenization/input_example.txt) input example).
+So a program of:
+```
+void methodName(String fooBar) {
+    System.out.println("hello world");
+}
+```
+
+should be printed by the modified JavaExtractor as:
+
+```method name|void (String fooBar){ System.out.println("hello world");}```
+
+and the tokenization script would turn it into: 
+
+```void ( String foo Bar ) { System . out . println ( " hello world " ) ; }```
+
+and the label to be predicted, i.e., "method name", into a separate file.
+
+OpenNMT-py can then be trained over these training source and target files.
 
 ## Citation 
 
