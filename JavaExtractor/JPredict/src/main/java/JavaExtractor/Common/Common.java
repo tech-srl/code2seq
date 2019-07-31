@@ -53,8 +53,9 @@ public final class Common {
     }
 
     public static ArrayList<String> splitToSubtokens(String str1) {
-        String str2 = str1.trim();
-        return Stream.of(str2.split("(?<=[a-z])(?=[A-Z])|_|[0-9]|(?<=[A-Z])(?=[A-Z][a-z])|\\s+"))
+        String str2 = str1.replace("|", " ");
+        String str3 = str2.trim();
+        return Stream.of(str3.split("(?<=[a-z])(?=[A-Z])|_|[0-9]|(?<=[A-Z])(?=[A-Z][a-z])|\\s+"))
                 .filter(s -> s.length() > 0).map(s -> Common.normalizeName(s, Common.EmptyString))
                 .filter(s -> s.length() > 0).collect(Collectors.toCollection(ArrayList::new));
     }
