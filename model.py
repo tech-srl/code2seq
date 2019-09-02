@@ -233,10 +233,10 @@ class Model:
             if self.config.BEAM_WIDTH > 0:
                 predicted_first = predicted[0]
             filtered_predicted_first_parts = Common.filter_impossible_names(predicted_first) # list
-            output_file.write('Original: ' + Common.internal_delimiter.join(original_name_parts) +
-                              ' , predicted 1st: ' + Common.internal_delimiter.join(filtered_predicted_first_parts) + '\n')
 
             if self.config.BEAM_WIDTH == 0:
+                output_file.write('Original: ' + Common.internal_delimiter.join(original_name_parts) +
+                                  ' , predicted 1st: ' + Common.internal_delimiter.join(filtered_predicted_first_parts) + '\n')
                 if filtered_original == filtered_predicted_first_parts or Common.unique(filtered_original) == Common.unique(
                         filtered_predicted_first_parts) or ''.join(filtered_original) == ''.join(filtered_predicted_first_parts):
                     num_correct_predictions += 1
@@ -244,6 +244,9 @@ class Model:
                 filtered_predicted = [Common.internal_delimiter.join(Common.filter_impossible_names(p)) for p in predicted]
 
                 true_ref = original_name
+                output_file.write('Original: ' + ' '.join(original_name_parts) + '\n')
+                for i, p in enumerate(filtered_predicted):
+                    output_file.write('\t@{}: {}'.format(i + 1, ' '.join(p.split(Common.internal_delimiter)))+ '\n')
                 if true_ref in filtered_predicted:
                     index_of_correct = filtered_predicted.index(true_ref)
                     update = np.concatenate(
