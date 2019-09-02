@@ -104,7 +104,10 @@ class Model:
                 self.epochs_trained += self.config.SAVE_EVERY_EPOCHS
                 print('Finished %d epochs' % self.config.SAVE_EVERY_EPOCHS)
                 results, precision, recall, f1 = self.evaluate()
-                print('Accuracy after %d epochs: %.5f' % (self.epochs_trained, results))
+                if self.config.BEAM_WIDTH == 0:
+                    print('Accuracy after %d epochs: %.5f' % (self.epochs_trained, results))
+                else:
+                    print('Accuracy after {} epochs: {}'.format(self.epochs_trained, results))
                 print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (
                     self.epochs_trained, precision, recall, f1))
                 if f1 > best_f1:
@@ -167,7 +170,8 @@ class Model:
         with open(model_dirname + '/log.txt', 'w') as output_file, open(ref_file_name, 'w') as ref_file, open(
                 predicted_file_name,
                 'w') as pred_file:
-            num_correct_predictions = 0
+            num_correct_predictions = 0 if self.config.BEAM_WIDTH == 0 \
+                else np.zeros([self.config.BEAM_WIDTH], dtype=np.int32)
             total_predictions = 0
             total_prediction_batches = 0
             true_positive, false_positive, false_negative = 0, 0, 0
@@ -223,17 +227,29 @@ class Model:
 
     def update_correct_predictions(self, num_correct_predictions, output_file, results):
         for original_name, predicted in results:
+            original_name_parts = original_name.split(Common.internal_delimiter) # list
+            filtered_original = Common.filter_impossible_names(original_name_parts) # list
+            predicted_first = predicted
             if self.config.BEAM_WIDTH > 0:
-                predicted = predicted[0]
-            original_name_parts = original_name.split(Common.internal_delimiter)
-            filtered_original = Common.filter_impossible_names(original_name_parts)
-            filtered_predicted_parts = Common.filter_impossible_names(predicted)
+                predicted_first = predicted[0]
+            filtered_predicted_first_parts = Common.filter_impossible_names(predicted_first) # list
             output_file.write('Original: ' + Common.internal_delimiter.join(original_name_parts) +
-                              ' , predicted 1st: ' + Common.internal_delimiter.join(
-                [target for target in filtered_predicted_parts]) + '\n')
-            if filtered_original == filtered_predicted_parts or Common.unique(filtered_original) == Common.unique(
-                    filtered_predicted_parts) or ''.join(filtered_original) == ''.join(filtered_predicted_parts):
-                num_correct_predictions += 1
+                              ' , predicted 1st: ' + Common.internal_delimiter.join(filtered_predicted_first_parts) + '\n')
+
+            if self.config.BEAM_WIDTH == 0:
+                if filtered_original == filtered_predicted_first_parts or Common.unique(filtered_original) == Common.unique(
+                        filtered_predicted_first_parts) or ''.join(filtered_original) == ''.join(filtered_predicted_first_parts):
+                    num_correct_predictions += 1
+            else:
+                filtered_predicted = [Common.internal_delimiter.join(Common.filter_impossible_names(p)) for p in predicted]
+
+                true_ref = original_name
+                if true_ref in filtered_predicted:
+                    index_of_correct = filtered_predicted.index(true_ref)
+                    update = np.concatenate(
+                        [np.zeros(index_of_correct, dtype=np.int32),
+                         np.ones(self.config.BEAM_WIDTH - index_of_correct, dtype=np.int32)])
+                    num_correct_predictions += update
         return num_correct_predictions
 
     def update_per_subtoken_statistics(self, results, true_positive, false_positive, false_negative):
