@@ -14,6 +14,13 @@ Contributions are welcome.
 
 <center style="padding: 40px"><img width="70%" src="https://github.com/tech-srl/code2seq/raw/master/images/network.png" /></center>
 
+## See also:
+  * **Structural Language Models for Any-Code Generation** is a new paper that learns to generate the missing code within a larger code snippet. This is similar to code completion, but is able to predict complex expressions rather than a single token at a time. See [PDF](https://arxiv.org/pdf/1910.00577.pdf) (demo: soon).
+  * **Adversarial Examples for Models of Code** is a new paper that shows how to slightly mutate the input code snippet of code2vec and GNNs models (thus, introducing adversarial examples), such that the model (code2vec or GNNs) will output a prediction of our choice. See [PDF](https://arxiv.org/pdf/1910.07517.pdf) (code: soon).
+  * **Neural Reverse Engineering of Stripped Binaries** is a new paper that learns to predict procedure names in stripped binaries, thus use neural networks for reverse engineering. See [PDF](https://arxiv.org/pdf/1902.09122) (code: soon).
+  * **code2vec** (POPL'2019) is our previous model. It can only generate a single label at a time (rather than a sequence as code2seq), but it is much faster to train (because of its simplicity). See [PDF](https://urialon.cswp.cs.technion.ac.il/wp-content/uploads/sites/83/2018/12/code2vec-popl19.pdf), demo at [https://code2vec.org](https://code2vec.org) and [code](https://github.com/tech-srl/code2vec/).
+
+
 Table of Contents
 =================
   * [Requirements](#requirements)
