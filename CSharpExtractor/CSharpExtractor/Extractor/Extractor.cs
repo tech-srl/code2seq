@@ -13,13 +13,10 @@ namespace Extractor
 {
     public class Extractor
     {
-        //private SemanticModel semanticModel;
-        public const string UpTreeChar = "^";
-        public const string DownTreeChar = "_";
         public const string InternalDelimiter = "|";
+        public const string UpTreeChar = InternalDelimiter;
+        public const string DownTreeChar = InternalDelimiter;
         public const string MethodNameConst = "METHOD_NAME";
-        // public const string UpTreeChar = InternalDelimiter;
-        // public const string DownTreeChar = InternalDelimiter;
         public static SyntaxKind[] ParentTypeToAddChildId = new SyntaxKind[] { SyntaxKind.SimpleAssignmentExpression,
             SyntaxKind.ElementAccessExpression, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.InvocationExpression, SyntaxKind.BracketedArgumentList, SyntaxKind.ArgumentList};
 
