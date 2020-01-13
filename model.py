@@ -8,6 +8,26 @@ import tensorflow as tf
 
 import reader
 from common import Common
+from rouge import FilesRouge
+
+
+def nans_(tensor, msg=''):
+    number_of_nans = tf.cast(tf.reduce_sum(tf.cast(tf.is_nan(
+        tensor
+    ), tf.float32)), tf.int64)
+    print_op = tf.print(f'NUMBER OF NANS in {msg}: ', number_of_nans,
+                        ' / ', tf.size(tensor))
+    with tf.control_dependencies([print_op]):
+        return tensor + 0
+
+
+def zeros_(tensor, msg=''):
+    number_of_zeros = tf.size(tensor, out_type=tf.int64) - tf.count_nonzero(
+        tensor)
+    print_op = tf.print(f'NUMBER OF ZEROS in {msg}: ', number_of_zeros,
+                        ' / ', tf.size(tensor))
+    with tf.control_dependencies([print_op]):
+        return tensor + 0
 
 
 class Model:
@@ -94,6 +114,7 @@ class Model:
                     batch_num += 1
                     _, batch_loss = self.sess.run([optimizer, train_loss])
                     sum_loss += batch_loss
+                    # print('SINGLE BATCH LOSS', batch_loss)
                     if batch_num % self.num_batches_to_log == 0:
                         self.trace(sum_loss, batch_num, multi_batch_start_time)
                         sum_loss = 0
@@ -103,13 +124,14 @@ class Model:
             except tf.errors.OutOfRangeError:
                 self.epochs_trained += self.config.SAVE_EVERY_EPOCHS
                 print('Finished %d epochs' % self.config.SAVE_EVERY_EPOCHS)
-                results, precision, recall, f1 = self.evaluate()
+                results, precision, recall, f1, rouge = self.evaluate()
                 if self.config.BEAM_WIDTH == 0:
                     print('Accuracy after %d epochs: %.5f' % (self.epochs_trained, results))
                 else:
                     print('Accuracy after {} epochs: {}'.format(self.epochs_trained, results))
                 print('After %d epochs: Precision: %.5f, recall: %.5f, F1: %.5f' % (
                     self.epochs_trained, precision, recall, f1))
+                print('Rouge: ', rouge)
                 if f1 > best_f1:
                     best_f1 = f1
                     best_f1_precision = precision
@@ -222,8 +244,11 @@ class Model:
 
         elapsed = int(time.time() - eval_start_time)
         precision, recall, f1 = self.calculate_results(true_positive, false_positive, false_negative)
+        files_rouge = FilesRouge(predicted_file_name, ref_file_name)
+        rouge = files_rouge.get_scores(avg=True, ignore_empty=True)
         print("Evaluation time: %sh%sm%ss" % ((elapsed // 60 // 60), (elapsed // 60) % 60, elapsed % 60))
-        return num_correct_predictions / total_predictions, precision, recall, f1
+        return num_correct_predictions / total_predictions, \
+               precision, recall, f1, rouge
 
     def update_correct_predictions(self, num_correct_predictions, output_file, results):
         for original_name, predicted in results:
