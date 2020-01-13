@@ -11,25 +11,6 @@ from common import Common
 from rouge import FilesRouge
 
 
-def nans_(tensor, msg=''):
-    number_of_nans = tf.cast(tf.reduce_sum(tf.cast(tf.is_nan(
-        tensor
-    ), tf.float32)), tf.int64)
-    print_op = tf.print(f'NUMBER OF NANS in {msg}: ', number_of_nans,
-                        ' / ', tf.size(tensor))
-    with tf.control_dependencies([print_op]):
-        return tensor + 0
-
-
-def zeros_(tensor, msg=''):
-    number_of_zeros = tf.size(tensor, out_type=tf.int64) - tf.count_nonzero(
-        tensor)
-    print_op = tf.print(f'NUMBER OF ZEROS in {msg}: ', number_of_zeros,
-                        ' / ', tf.size(tensor))
-    with tf.control_dependencies([print_op]):
-        return tensor + 0
-
-
 class Model:
     topk = 10
     num_batches_to_log = 100
