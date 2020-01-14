@@ -1,4 +1,6 @@
 from argparse import ArgumentParser
+import numpy as np
+import tensorflow as tf
 
 from config import Config
 from interactive_predict import InteractivePredictor
@@ -20,7 +22,11 @@ if __name__ == '__main__':
                              'size.')
     parser.add_argument('--predict', action='store_true')
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--seed', type=int, default=239)
     args = parser.parse_args()
+
+    np.random.seed(args.seed)
+    tf.set_random_seed(args.seed)
 
     if args.debug:
         config = Config.get_debug_config(args)
@@ -32,9 +38,10 @@ if __name__ == '__main__':
     if config.TRAIN_PATH:
         model.train()
     if config.TEST_PATH and not args.data_path:
-        results, precision, recall, f1 = model.evaluate()
+        results, precision, recall, f1, rouge = model.evaluate()
         print('Accuracy: ' + str(results))
         print('Precision: ' + str(precision) + ', recall: ' + str(recall) + ', F1: ' + str(f1))
+        print('Rouge: ', rouge)
     if args.predict:
         predictor = InteractivePredictor(config, model)
         predictor.predict()

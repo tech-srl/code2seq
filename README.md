@@ -38,6 +38,7 @@ Table of Contents
 > python3 -c 'import tensorflow as tf; print(tf.\_\_version\_\_)'
   * For [creating a new Java dataset](#creating-and-preprocessing-a-new-java-dataset) or [manually examining a trained model](#step-4-manual-examination-of-a-trained-model) (any operation that requires parsing of a new code example): [JDK](https://openjdk.java.net/install/)
   * For creating a C# dataset: [dotnet-core](https://dotnet.microsoft.com/download) version 2.2 or newer.
+  * `pip install rouge` for computing rouge scores.
 
 ## Quickstart
 ### Step 0: Cloning this repository
