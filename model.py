@@ -5,6 +5,7 @@ import time
 import numpy as np
 import shutil
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 import reader
 from common import Common
@@ -17,7 +18,7 @@ class Model:
 
     def __init__(self, config):
         self.config = config
-        self.sess = tf.Session()
+        self.sess = tf.compat.v1.Session()
 
         self.eval_queue = None
         self.predict_queue = None
@@ -233,26 +234,30 @@ class Model:
 
     def update_correct_predictions(self, num_correct_predictions, output_file, results):
         for original_name, predicted in results:
-            original_name_parts = original_name.split(Common.internal_delimiter) # list
-            filtered_original = Common.filter_impossible_names(original_name_parts) # list
+            original_name_parts = original_name.split(Common.internal_delimiter)  # list
+            filtered_original = Common.filter_impossible_names(original_name_parts)  # list
             predicted_first = predicted
             if self.config.BEAM_WIDTH > 0:
                 predicted_first = predicted[0]
-            filtered_predicted_first_parts = Common.filter_impossible_names(predicted_first) # list
+            filtered_predicted_first_parts = Common.filter_impossible_names(predicted_first)  # list
 
             if self.config.BEAM_WIDTH == 0:
                 output_file.write('Original: ' + Common.internal_delimiter.join(original_name_parts) +
-                                  ' , predicted 1st: ' + Common.internal_delimiter.join(filtered_predicted_first_parts) + '\n')
-                if filtered_original == filtered_predicted_first_parts or Common.unique(filtered_original) == Common.unique(
-                        filtered_predicted_first_parts) or ''.join(filtered_original) == ''.join(filtered_predicted_first_parts):
+                                  ' , predicted 1st: ' + Common.internal_delimiter.join(
+                    filtered_predicted_first_parts) + '\n')
+                if filtered_original == filtered_predicted_first_parts or Common.unique(
+                        filtered_original) == Common.unique(
+                    filtered_predicted_first_parts) or ''.join(filtered_original) == ''.join(
+                    filtered_predicted_first_parts):
                     num_correct_predictions += 1
             else:
-                filtered_predicted = [Common.internal_delimiter.join(Common.filter_impossible_names(p)) for p in predicted]
+                filtered_predicted = [Common.internal_delimiter.join(Common.filter_impossible_names(p)) for p in
+                                      predicted]
 
                 true_ref = original_name
                 output_file.write('Original: ' + ' '.join(original_name_parts) + '\n')
                 for i, p in enumerate(filtered_predicted):
-                    output_file.write('\t@{}: {}'.format(i + 1, ' '.join(p.split(Common.internal_delimiter)))+ '\n')
+                    output_file.write('\t@{}: {}'.format(i + 1, ' '.join(p.split(Common.internal_delimiter))) + '\n')
                 if true_ref in filtered_predicted:
                     index_of_correct = filtered_predicted.index(true_ref)
                     update = np.concatenate(
@@ -339,24 +344,25 @@ class Model:
         path_lengths = input_tensors[reader.PATH_LENGTHS_KEY]
         path_target_lengths = input_tensors[reader.PATH_TARGET_LENGTHS_KEY]
 
-        with tf.variable_scope('model'):
-            subtoken_vocab = tf.get_variable('SUBTOKENS_VOCAB',
-                                             shape=(self.subtoken_vocab_size, self.config.EMBEDDINGS_SIZE),
-                                             dtype=tf.float32,
-                                             initializer=tf.contrib.layers.variance_scaling_initializer(factor=1.0,
-                                                                                                        mode='FAN_OUT',
-                                                                                                        uniform=True))
-            target_words_vocab = tf.get_variable('TARGET_WORDS_VOCAB',
-                                                 shape=(self.target_vocab_size, self.config.EMBEDDINGS_SIZE),
-                                                 dtype=tf.float32,
-                                                 initializer=tf.contrib.layers.variance_scaling_initializer(factor=1.0,
-                                                                                                            mode='FAN_OUT',
-                                                                                                            uniform=True))
-            nodes_vocab = tf.get_variable('NODES_VOCAB', shape=(self.nodes_vocab_size, self.config.EMBEDDINGS_SIZE),
-                                          dtype=tf.float32,
-                                          initializer=tf.contrib.layers.variance_scaling_initializer(factor=1.0,
-                                                                                                     mode='FAN_OUT',
-                                                                                                     uniform=True))
+        with tf.compat.v1.variable_scope('model'):
+            subtoken_vocab = tf.compat.v1.get_variable('SUBTOKENS_VOCAB',
+                                                       shape=(self.subtoken_vocab_size, self.config.EMBEDDINGS_SIZE),
+                                                       dtype=tf.float32,
+                                                       initializer=tf.initializers.VarianceScaling(scale=1.0,
+                                                                                                   mode='fan_out',
+                                                                                                   distribution='uniform'))
+            target_words_vocab = tf.compat.v1.get_variable('TARGET_WORDS_VOCAB',
+                                                           shape=(self.target_vocab_size, self.config.EMBEDDINGS_SIZE),
+                                                           dtype=tf.float32,
+                                                           initializer=tf.initializers.VarianceScaling(scale=1.0,
+                                                                                                       mode='fan_out',
+                                                                                                       distribution='uniform'))
+            nodes_vocab = tf.compat.v1.get_variable('NODES_VOCAB',
+                                                    shape=(self.nodes_vocab_size, self.config.EMBEDDINGS_SIZE),
+                                                    dtype=tf.float32,
+                                                    initializer=tf.initializers.VarianceScaling(scale=1.0,
+                                                                                                mode='fan_out',
+                                                                                                distribution='uniform'))
             # (batch, max_contexts, decoder_size)
             batched_contexts = self.compute_contexts(subtoken_vocab=subtoken_vocab, nodes_vocab=nodes_vocab,
                                                      source_input=path_source_indices, nodes_input=node_indices,
@@ -398,24 +404,24 @@ class Model:
 
     def decode_outputs(self, target_words_vocab, target_input, batch_size, batched_contexts, valid_mask,
                        is_evaluating=False):
-        num_contexts_per_example = tf.count_nonzero(valid_mask, axis=-1)
+        num_contexts_per_example = tf.compat.v1.count_nonzero(valid_mask, axis=-1)
 
         start_fill = tf.fill([batch_size],
                              self.target_to_index[Common.SOS])  # (batch, )
-        decoder_cell = tf.nn.rnn_cell.MultiRNNCell([
-            tf.nn.rnn_cell.LSTMCell(self.config.DECODER_SIZE) for _ in range(self.config.NUM_DECODER_LAYERS)
+        decoder_cell = tf.compat.v1.nn.rnn_cell.MultiRNNCell([
+            tf.compat.v1.nn.rnn_cell.LSTMCell(self.config.DECODER_SIZE) for _ in range(self.config.NUM_DECODER_LAYERS)
         ])
         contexts_sum = tf.reduce_sum(batched_contexts * tf.expand_dims(valid_mask, -1),
                                      axis=1)  # (batch_size, dim * 2 + rnn_size)
-        contexts_average = tf.divide(contexts_sum, tf.to_float(tf.expand_dims(num_contexts_per_example, -1)))
-        fake_encoder_state = tuple(tf.nn.rnn_cell.LSTMStateTuple(contexts_average, contexts_average) for _ in
+        contexts_average = tf.divide(contexts_sum, tf.cast(tf.expand_dims(num_contexts_per_example, -1), tf.float32))
+        fake_encoder_state = tuple(tf.compat.v1.nn.rnn_cell.LSTMStateTuple(contexts_average, contexts_average) for _ in
                                    range(self.config.NUM_DECODER_LAYERS))
-        projection_layer = tf.layers.Dense(self.target_vocab_size, use_bias=False)
+        projection_layer = tf.compat.v1.layers.Dense(self.target_vocab_size, use_bias=False)
         if is_evaluating and self.config.BEAM_WIDTH > 0:
             batched_contexts = tf.contrib.seq2seq.tile_batch(batched_contexts, multiplier=self.config.BEAM_WIDTH)
             num_contexts_per_example = tf.contrib.seq2seq.tile_batch(num_contexts_per_example,
                                                                      multiplier=self.config.BEAM_WIDTH)
-        attention_mechanism = tf.contrib.seq2seq.LuongAttention(
+        attention_mechanism = tfa.seq2seq.LuongAttention(
             num_units=self.config.DECODER_SIZE,
             memory=batched_contexts
         )
@@ -453,7 +459,7 @@ class Model:
                                                                       axis=-1))  # (batch, max_target_parts, dim * 2 + rnn_size)
             helper = tf.contrib.seq2seq.TrainingHelper(inputs=target_words_embedding,
                                                        sequence_length=tf.ones([batch_size], dtype=tf.int32) * (
-                                                           self.config.MAX_TARGET_PARTS + 1))
+                                                               self.config.MAX_TARGET_PARTS + 1))
 
             initial_state = decoder_cell.zero_state(batch_size, tf.float32).clone(cell_state=fake_encoder_state)
 
@@ -477,14 +483,14 @@ class Model:
         lengths = tf.multiply(tf.reshape(path_lengths, [-1]),
                               tf.cast(flat_valid_contexts_mask, tf.int32))  # (batch * max_contexts)
         if self.config.BIRNN:
-            rnn_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE / 2)
-            rnn_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE / 2)
+            rnn_cell_fw = tf.compat.v1.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE // 2)
+            rnn_cell_bw = tf.compat.v1.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE // 2)
             if not is_evaluating:
-                rnn_cell_fw = tf.nn.rnn_cell.DropoutWrapper(rnn_cell_fw,
+                rnn_cell_fw = tf.compat.v1.nn.rnn_cell.DropoutWrapper(rnn_cell_fw,
                                                             output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
-                rnn_cell_bw = tf.nn.rnn_cell.DropoutWrapper(rnn_cell_bw,
+                rnn_cell_bw = tf.compat.v1.nn.rnn_cell.DropoutWrapper(rnn_cell_bw,
                                                             output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
-            _, (state_fw, state_bw) = tf.nn.bidirectional_dynamic_rnn(
+            _, (state_fw, state_bw) = tf.compat.v1.nn.bidirectional_dynamic_rnn(
                 cell_fw=rnn_cell_fw,
                 cell_bw=rnn_cell_bw,
                 inputs=flat_paths,
@@ -535,7 +541,7 @@ class Model:
         if not is_evaluating:
             context_embed = tf.nn.dropout(context_embed, self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
 
-        batched_embed = tf.layers.dense(inputs=context_embed, units=self.config.DECODER_SIZE,
+        batched_embed = tf.compat.v1.layers.dense(inputs=context_embed, units=self.config.DECODER_SIZE,
                                         activation=tf.nn.tanh, trainable=not is_evaluating, use_bias=False)
 
         return batched_embed

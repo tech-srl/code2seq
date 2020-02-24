@@ -6,6 +6,10 @@ from config import Config
 from interactive_predict import InteractivePredictor
 from model import Model
 
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-d", "--data", dest="data_path",
