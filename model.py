@@ -422,21 +422,21 @@ class Model:
             num_contexts_per_example = tf.contrib.seq2seq.tile_batch(num_contexts_per_example,
                                                                      multiplier=self.config.BEAM_WIDTH)
         attention_mechanism = tfa.seq2seq.LuongAttention(
-            num_units=self.config.DECODER_SIZE,
+            units=self.config.DECODER_SIZE,
             memory=batched_contexts
         )
         # TF doesn't support beam search with alignment history
         should_save_alignment_history = is_evaluating and self.config.BEAM_WIDTH == 0
-        decoder_cell = tf.contrib.seq2seq.AttentionWrapper(decoder_cell, attention_mechanism,
-                                                           attention_layer_size=self.config.DECODER_SIZE,
-                                                           alignment_history=should_save_alignment_history)
+        decoder_cell = tfa.seq2seq.AttentionWrapper(decoder_cell, attention_mechanism,
+                                                    attention_layer_size=self.config.DECODER_SIZE,
+                                                    alignment_history=should_save_alignment_history)
         if is_evaluating:
             if self.config.BEAM_WIDTH > 0:
                 decoder_initial_state = decoder_cell.zero_state(dtype=tf.float32,
                                                                 batch_size=batch_size * self.config.BEAM_WIDTH)
                 decoder_initial_state = decoder_initial_state.clone(
-                    cell_state=tf.contrib.seq2seq.tile_batch(fake_encoder_state, multiplier=self.config.BEAM_WIDTH))
-                decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+                    cell_state=tfa.seq2seq.tile_batch(fake_encoder_state, multiplier=self.config.BEAM_WIDTH))
+                decoder = tfa.seq2seq.BeamSearchDecoder(
                     cell=decoder_cell,
                     embedding=target_words_vocab,
                     start_tokens=start_fill,
@@ -446,27 +446,35 @@ class Model:
                     output_layer=projection_layer,
                     length_penalty_weight=0.0)
             else:
-                helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(target_words_vocab, start_fill, 0)
+                helper = tfa.seq2seq.GreedyEmbeddingHelper(target_words_vocab, start_fill, 0)
                 initial_state = decoder_cell.zero_state(batch_size, tf.float32).clone(cell_state=fake_encoder_state)
-                decoder = tf.contrib.seq2seq.BasicDecoder(cell=decoder_cell, helper=helper, initial_state=initial_state,
-                                                          output_layer=projection_layer)
+                decoder = tfa.seq2seq.BasicDecoder(cell=decoder_cell, helper=helper, initial_state=initial_state,
+                                                   output_layer=projection_layer)
 
         else:
-            decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell,
-                                                         output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
+            decoder_cell = tf.nn.RNNCellDropoutWrapper(decoder_cell,
+                                                       output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
             target_words_embedding = tf.nn.embedding_lookup(target_words_vocab,
                                                             tf.concat([tf.expand_dims(start_fill, -1), target_input],
                                                                       axis=-1))  # (batch, max_target_parts, dim * 2 + rnn_size)
-            helper = tf.contrib.seq2seq.TrainingHelper(inputs=target_words_embedding,
-                                                       sequence_length=tf.ones([batch_size], dtype=tf.int32) * (
-                                                               self.config.MAX_TARGET_PARTS + 1))
+            # helper = tfa.seq2seq.TrainingHelper(inputs=target_words_embedding,
+            #                                            sequence_length=tf.ones([batch_size], dtype=tf.int32) * (
+            #                                                    self.config.MAX_TARGET_PARTS + 1))
 
-            initial_state = decoder_cell.zero_state(batch_size, tf.float32).clone(cell_state=fake_encoder_state)
+            sampler = tfa.seq2seq.sampler.TrainingSampler()
 
-            decoder = tf.contrib.seq2seq.BasicDecoder(cell=decoder_cell, helper=helper, initial_state=initial_state,
-                                                      output_layer=projection_layer)
-        outputs, final_states, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(decoder,
-                                                                                          maximum_iterations=self.config.MAX_TARGET_PARTS + 1)
+            initial_state = decoder_cell.get_initial_state(target_words_embedding, batch_size, tf.float32).clone(
+                cell_state=fake_encoder_state)
+
+            decoder = tfa.seq2seq.BasicDecoder(cell=decoder_cell, sampler=sampler, output_layer=projection_layer)
+
+            #        outputs, final_states, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(decoder,
+            #                                                                                          maximum_iterations=self.config.MAX_TARGET_PARTS + 1)
+
+        outputs, final_states, final_sequence_lengths = decoder(
+            target_words_embedding,
+            initial_state=initial_state,
+            sequence_length=tf.ones([batch_size], dtype=tf.int32) * (self.config.MAX_TARGET_PARTS + 1))
         return outputs, final_states
 
     def calculate_path_abstraction(self, path_embed, path_lengths, valid_contexts_mask, is_evaluating=False):
@@ -487,9 +495,9 @@ class Model:
             rnn_cell_bw = tf.compat.v1.nn.rnn_cell.LSTMCell(self.config.RNN_SIZE // 2)
             if not is_evaluating:
                 rnn_cell_fw = tf.compat.v1.nn.rnn_cell.DropoutWrapper(rnn_cell_fw,
-                                                            output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
+                                                                      output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
                 rnn_cell_bw = tf.compat.v1.nn.rnn_cell.DropoutWrapper(rnn_cell_bw,
-                                                            output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
+                                                                      output_keep_prob=self.config.RNN_DROPOUT_KEEP_PROB)
             _, (state_fw, state_bw) = tf.compat.v1.nn.bidirectional_dynamic_rnn(
                 cell_fw=rnn_cell_fw,
                 cell_bw=rnn_cell_bw,
@@ -542,7 +550,7 @@ class Model:
             context_embed = tf.nn.dropout(context_embed, self.config.EMBEDDINGS_DROPOUT_KEEP_PROB)
 
         batched_embed = tf.compat.v1.layers.dense(inputs=context_embed, units=self.config.DECODER_SIZE,
-                                        activation=tf.nn.tanh, trainable=not is_evaluating, use_bias=False)
+                                                  activation=tf.nn.tanh, trainable=not is_evaluating, use_bias=False)
 
         return batched_embed
 
