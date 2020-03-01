@@ -253,12 +253,12 @@ if __name__ == '__main__':
         dataset = tf.data.experimental.CsvDataset(file_path, record_defaults=record_defaults, field_delim=' ',
                                                   use_quote_delim=False, buffer_size=config.CSV_BUFFER_SIZE)
 
-        #dataset = dataset.map(map_func=reader.process_dataset).batch(batch_size=16)
-        #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+        dataset = dataset.map(map_func=reader.process_dataset).batch(batch_size=16)
+        dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
         dataset_iterator = iter(dataset)
 
-        row = next(dataset_iterator)
-        output = reader.process_dataset(*row)
+        # row = next(dataset_iterator)
+        # output = reader.process_dataset(*row)
 
         try:
             for output in dataset_iterator:
