@@ -6,9 +6,7 @@ from config import Config
 from interactive_predict import InteractivePredictor
 from model import Model
 
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-
+tf.config.experimental_run_functions_eagerly(True)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -30,7 +28,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     np.random.seed(args.seed)
-    tf.set_random_seed(args.seed)
+    tf.random.set_seed(args.seed)
 
     if args.debug:
         config = Config.get_debug_config(args)
@@ -51,4 +49,3 @@ if __name__ == '__main__':
         predictor.predict()
     if args.release and args.load_path:
         model.evaluate(release=True)
-    model.close_session()

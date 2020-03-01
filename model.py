@@ -18,7 +18,6 @@ class Model:
 
     def __init__(self, config):
         self.config = config
-        self.sess = tf.compat.v1.Session()
 
         self.eval_queue = None
         self.predict_queue = None
@@ -56,9 +55,6 @@ class Model:
                 Common.load_vocab_from_dict(node_to_count, add_values=[Common.PAD, Common.UNK], max_size=None)
             print('Loaded nodes vocab. size: %d' % self.nodes_vocab_size)
             self.epochs_trained = 0
-
-    def close_session(self):
-        self.sess.close()
 
     def train(self):
         print('Starting training')
