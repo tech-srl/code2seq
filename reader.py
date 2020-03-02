@@ -196,7 +196,7 @@ class Reader:
         dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
         self.iterator = iter(dataset)
         self.reset_op = dataset.repeat
-        return next(self.iterator)
+        return self.iterator
 
 
 if __name__ == '__main__':
@@ -245,17 +245,21 @@ if __name__ == '__main__':
             Common.load_vocab_from_dict(node_to_count, add_values=[Common.PAD, Common.UNK], max_size=None)
         print('Loaded nodes vocab. size: %d' % nodes_vocab_size)
 
-        reader = Reader(subtoken_to_index, target_to_index, node_to_index, config, False, True)
+        is_debug = False
+        reader = Reader(subtoken_to_index, target_to_index, node_to_index, config, False, is_debug)
 
-        file_path = '{}.train.c2s'.format(config.TRAIN_PATH)
-        context_pad = '{},{},{}'.format(Common.PAD, Common.PAD, Common.PAD)
-        record_defaults = [[context_pad]] * (config.DATA_NUM_CONTEXTS + 1)
-        dataset = tf.data.experimental.CsvDataset(file_path, record_defaults=record_defaults, field_delim=' ',
-                                                  use_quote_delim=False, buffer_size=config.CSV_BUFFER_SIZE)
+        if not is_debug:
+            dataset_iterator = reader.get_output()
+        else:
+            file_path = '{}.train.c2s'.format(config.TRAIN_PATH)
+            context_pad = '{},{},{}'.format(Common.PAD, Common.PAD, Common.PAD)
+            record_defaults = [[context_pad]] * (config.DATA_NUM_CONTEXTS + 1)
+            dataset = tf.data.experimental.CsvDataset(file_path, record_defaults=record_defaults, field_delim=' ',
+                                                      use_quote_delim=False, buffer_size=config.CSV_BUFFER_SIZE)
 
-        dataset = dataset.map(map_func=reader.process_dataset).batch(batch_size=16)
-        dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-        dataset_iterator = iter(dataset)
+            dataset = dataset.map(map_func=reader.process_dataset).batch(batch_size=16)
+            dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+            dataset_iterator = iter(dataset)
 
         # row = next(dataset_iterator)
         # output = reader.process_dataset(*row)

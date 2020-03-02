@@ -4,7 +4,7 @@ import tensorflow as tf
 
 from config import Config
 from interactive_predict import InteractivePredictor
-from model import Model
+from modelrunner import ModelRunner
 
 tf.config.experimental_run_functions_eagerly(True)
 
@@ -35,17 +35,20 @@ if __name__ == '__main__':
     else:
         config = Config.get_default_config(args)
 
-    model = Model(config)
     print('Created model')
     if config.TRAIN_PATH:
+        model = ModelRunner(config, is_training=True)
         model.train()
     if config.TEST_PATH and not args.data_path:
+        model = ModelRunner(config, is_training=False)
         results, precision, recall, f1, rouge = model.evaluate()
         print('Accuracy: ' + str(results))
         print('Precision: ' + str(precision) + ', recall: ' + str(recall) + ', F1: ' + str(f1))
         print('Rouge: ', rouge)
     if args.predict:
+        model = ModelRunner(config, is_training=False)
         predictor = InteractivePredictor(config, model)
         predictor.predict()
     if args.release and args.load_path:
+        model = ModelRunner(config, is_training=False)
         model.evaluate(release=True)
