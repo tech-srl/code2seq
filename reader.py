@@ -174,8 +174,8 @@ class Reader:
                 PATH_STRINGS_KEY: path_strings, PATH_TARGET_STRINGS_KEY: path_target_strings
                 }
 
-    def reset(self, sess):
-        sess.run(self.reset_op)
+    def reset(self):
+        self.reset_op()
 
     def get_output(self):
         return self.output_tensors
