@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 from common import Common
 from config import Config
-from argparse import ArgumentParser
+from args import read_args
 
 TARGET_INDEX_KEY = 'TARGET_INDEX_KEY'
 TARGET_STRING_KEY = 'TARGET_STRING_KEY'
@@ -26,13 +26,13 @@ class Reader:
     class_target_table = None
     class_node_table = None
 
-    def __init__(self, subtoken_to_index, target_to_index, node_to_index, config, is_evaluating=False, is_debug=False):
+    def __init__(self, subtoken_to_index, target_to_index, node_to_index, config, is_evaluating=False):
         self.config = config
         self.file_path = config.TEST_PATH if is_evaluating else (config.TRAIN_PATH + '.train.c2s')
         if self.file_path is not None and not os.path.exists(self.file_path):
             print(
                 '%s cannot find file: %s' % ('Evaluation reader' if is_evaluating else 'Train reader', self.file_path))
-        self.batch_size = config.TEST_BATCH_SIZE if is_evaluating else config.BATCH_SIZE
+        self.batch_size = config.BATCH_SIZE
         self.is_evaluating = is_evaluating
 
         self.context_pad = '{},{},{}'.format(Common.PAD, Common.PAD, Common.PAD)
@@ -41,8 +41,8 @@ class Reader:
         self.subtoken_table = Reader.get_subtoken_table(subtoken_to_index)
         self.target_table = Reader.get_target_table(target_to_index)
         self.node_table = Reader.get_node_table(node_to_index)
-        if self.file_path is not None and not is_debug:
-            self.output_tensors = self.compute_output()
+        self.dataset = None
+        self.init_dataset()
 
     @classmethod
     def get_subtoken_table(cls, subtoken_to_index):
@@ -174,52 +174,29 @@ class Reader:
                 PATH_STRINGS_KEY: path_strings, PATH_TARGET_STRINGS_KEY: path_target_strings
                 }
 
-    def reset(self):
-        self.reset_op()
+    def get_dataset(self):
+        return self.dataset
 
-    def get_output(self):
-        return self.output_tensors
-
-    def compute_output(self):
-        dataset = tf.data.experimental.CsvDataset(self.file_path, record_defaults=self.record_defaults, field_delim=' ',
-                                                  use_quote_delim=False, buffer_size=self.config.CSV_BUFFER_SIZE)
-
+    def init_dataset(self):
+        self.dataset = tf.data.experimental.CsvDataset(self.file_path, record_defaults=self.record_defaults,
+                                                       field_delim=' ',
+                                                       use_quote_delim=False, buffer_size=self.config.CSV_BUFFER_SIZE)
         if not self.is_evaluating:
-            if self.config.SAVE_EVERY_EPOCHS > 1:
-                dataset = dataset.repeat(self.config.SAVE_EVERY_EPOCHS)
-            dataset = dataset.shuffle(self.config.SHUFFLE_BUFFER_SIZE, reshuffle_each_iteration=True)
+            self.dataset = self.dataset.shuffle(self.config.SHUFFLE_BUFFER_SIZE, reshuffle_each_iteration=True)
 
-        dataset = dataset.map(map_func=self.process_dataset,
-                              num_parallel_calls=self.config.READER_NUM_PARALLEL_BATCHES).batch(
-            batch_size=self.batch_size)
-
-        dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-        self.iterator = iter(dataset)
-        self.reset_op = dataset.repeat
-        return self.iterator
+        self.dataset = self.dataset.map(map_func=self.process_dataset,
+                                        num_parallel_calls=self.config.READER_NUM_PARALLEL_BATCHES).batch(
+            batch_size=self.batch_size, drop_remainder=True).prefetch(tf.data.experimental.AUTOTUNE)
 
 
 if __name__ == '__main__':
 
-    tf.config.experimental_run_functions_eagerly(True)
+    # tf.config.experimental_run_functions_eagerly(True)
 
     print("tf executing eagerly: " + str(tf.executing_eagerly()))
 
-    parser = ArgumentParser()
-    parser.add_argument("-d", "--data", dest="data_path",
-                        help="path to preprocessed dataset", required=False)
-    parser.add_argument("-te", "--test", dest="test_path",
-                        help="path to test file", metavar="FILE", required=False)
-    parser.add_argument("-s", "--save_prefix", dest="save_path_prefix",
-                        help="path to save file", metavar="FILE", required=False)
-    parser.add_argument("-l", "--load", dest="load_path",
-                        help="path to saved file", metavar="FILE", required=False)
-    parser.add_argument('--release', action='store_true',
-                        help='if specified and loading a trained model, release the loaded model for a smaller model '
-                             'size.')
-    args = parser.parse_args()
+    args = read_args()
     config = Config.get_default_config(args)
-    config.DATA_NUM_CONTEXTS
 
     with open('{}.dict.c2s'.format(config.TRAIN_PATH), 'rb') as file:
         subtoken_to_count = pickle.load(file)
@@ -245,27 +222,11 @@ if __name__ == '__main__':
             Common.load_vocab_from_dict(node_to_count, add_values=[Common.PAD, Common.UNK], max_size=None)
         print('Loaded nodes vocab. size: %d' % nodes_vocab_size)
 
-        is_debug = False
-        reader = Reader(subtoken_to_index, target_to_index, node_to_index, config, False, is_debug)
-
-        if not is_debug:
-            dataset_iterator = reader.get_output()
-        else:
-            file_path = '{}.train.c2s'.format(config.TRAIN_PATH)
-            context_pad = '{},{},{}'.format(Common.PAD, Common.PAD, Common.PAD)
-            record_defaults = [[context_pad]] * (config.DATA_NUM_CONTEXTS + 1)
-            dataset = tf.data.experimental.CsvDataset(file_path, record_defaults=record_defaults, field_delim=' ',
-                                                      use_quote_delim=False, buffer_size=config.CSV_BUFFER_SIZE)
-
-            dataset = dataset.map(map_func=reader.process_dataset).batch(batch_size=16)
-            dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-            dataset_iterator = iter(dataset)
-
-        # row = next(dataset_iterator)
-        # output = reader.process_dataset(*row)
+        reader = Reader(subtoken_to_index, target_to_index, node_to_index, config, False)
+        dataset = reader.get_dataset()
 
         try:
-            for output in dataset_iterator:
+            for output in dataset:
                 target_indices = output[TARGET_INDEX_KEY].numpy()
                 target_strings = output[TARGET_STRING_KEY].numpy()
                 target_lengths = output[TARGET_LENGTH_KEY].numpy()

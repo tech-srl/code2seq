@@ -125,9 +125,7 @@ The frequency, in epochs, of saving a model and evaluating on the validation set
 #### config.PATIENCE = 10
 Controlling early stopping: how many epochs of no improvement should training continue before stopping.  
 #### config.BATCH_SIZE = 512
-Batch size during training.
-#### config.TEST_BATCH_SIZE = 256
-Batch size during evaluation. Affects only the evaluation speed and memory consumption, does not affect the results.
+Batch size during training and inference.
 #### config.SHUFFLE_BUFFER_SIZE = 10000
 The buffer size that the reader uses for shuffling the training data. 
 Controls the randomness of the data. 

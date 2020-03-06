@@ -5,17 +5,16 @@ class Config:
         config.NUM_EPOCHS = 3000
         config.SAVE_EVERY_EPOCHS = 1
         config.PATIENCE = 10
-        config.BATCH_SIZE = 32
-        config.TEST_BATCH_SIZE = 256
+        config.BATCH_SIZE = 256
         config.READER_NUM_PARALLEL_BATCHES = 1
         config.SHUFFLE_BUFFER_SIZE = 10000
         config.CSV_BUFFER_SIZE = 100 * 1024 * 1024  # 100 MB
-        config.MAX_CONTEXTS = 200
+        config.MAX_CONTEXTS = 100
         config.SUBTOKENS_VOCAB_MAX_SIZE = 190000
         config.TARGET_VOCAB_MAX_SIZE = 27000
-        config.EMBEDDINGS_SIZE = 128
-        config.RNN_SIZE = 128 * 2  # Two LSTMs to embed paths, each of size 128
-        config.DECODER_SIZE = 320
+        config.EMBEDDINGS_SIZE = 32
+        config.RNN_SIZE = 32 * 2  # Two LSTMs to embed paths, each of size 128
+        config.DECODER_SIZE = 32
         config.NUM_DECODER_LAYERS = 1
         config.MAX_PATH_LENGTH = 8 + 1
         config.MAX_NAME_PARTS = 5
@@ -42,7 +41,6 @@ class Config:
         self.SAVE_EVERY_EPOCHS = 0
         self.PATIENCE = 0
         self.BATCH_SIZE = 0
-        self.TEST_BATCH_SIZE = 0
         self.READER_NUM_PARALLEL_BATCHES = 0
         self.SHUFFLE_BUFFER_SIZE = 0
         self.CSV_BUFFER_SIZE = None
@@ -56,8 +54,9 @@ class Config:
         self.RNN_SIZE = 0
         self.DECODER_SIZE = 0
         self.NUM_DECODER_LAYERS = 0
-        self.SAVE_PATH = args.save_path_prefix
-        self.LOAD_PATH = args.load_path
+        self.MODEL_PATH = args.model_path if args.model_path is not None else ''
+        self.SAVE_PATH = args.save_path if args.save_path is not None else ''
+        self.LOAD_PATH = args.load_path if args.load_path is not None else ''
         self.MAX_PATH_LENGTH = 0
         self.MAX_NAME_PARTS = 0
         self.MAX_TARGET_PARTS = 0
@@ -67,7 +66,6 @@ class Config:
         self.RANDOM_CONTEXTS = True
         self.BEAM_WIDTH = 1
         self.USE_MOMENTUM = True
-        self.RELEASE = args.release
 
     @staticmethod
     def get_debug_config(args):
@@ -76,7 +74,6 @@ class Config:
         config.SAVE_EVERY_EPOCHS = 100
         config.PATIENCE = 200
         config.BATCH_SIZE = 7
-        config.TEST_BATCH_SIZE = 7
         config.READER_NUM_PARALLEL_BATCHES = 1
         config.SHUFFLE_BUFFER_SIZE = 10
         config.CSV_BUFFER_SIZE = None
