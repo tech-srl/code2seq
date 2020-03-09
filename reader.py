@@ -42,7 +42,6 @@ class Reader:
         self.target_table = Reader.get_target_table(target_to_index)
         self.node_table = Reader.get_node_table(node_to_index)
         self.dataset = None
-        self.init_dataset()
 
     @classmethod
     def get_subtoken_table(cls, subtoken_to_index):
@@ -175,6 +174,7 @@ class Reader:
                 }
 
     def get_dataset(self):
+        self.init_dataset()
         return self.dataset
 
     def init_dataset(self):

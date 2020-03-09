@@ -19,7 +19,8 @@ class ModelRunner:
         self.config = config
 
         if config.LOAD_PATH:
-            self.model = tf.saved_model.load(config.LOAD_PATH)
+            self.model = None
+            self.load_model(self.config.LOAD_PATH)
         else:
             with open('{}.dict.c2s'.format(config.TRAIN_PATH), 'rb') as file:
                 subtoken_to_count = pickle.load(file)
@@ -46,20 +47,23 @@ class ModelRunner:
                 Common.load_vocab_from_dict(node_to_count, add_values=[Common.PAD, Common.UNK], max_size=None)
             print('Loaded nodes vocab. size: %d' % self.nodes_vocab_size)
 
-        self.train_dataset_reader = reader.Reader(subtoken_to_index=self.subtoken_to_index,
-                                                  node_to_index=self.node_to_index,
-                                                  target_to_index=self.target_to_index,
-                                                  config=self.config,
-                                                  is_evaluating=False)
+            self.model = Model(self.config, self.subtoken_vocab_size, self.target_vocab_size, self.nodes_vocab_size,
+                               self.target_to_index)
+
+        if self.config.TRAIN_PATH:
+            self.train_dataset_reader = reader.Reader(subtoken_to_index=self.subtoken_to_index,
+                                                      node_to_index=self.node_to_index,
+                                                      target_to_index=self.target_to_index,
+                                                      config=self.config,
+                                                      is_evaluating=False)
+        else:
+            self.train_dataset_reader = None
 
         self.test_dataset_reader = reader.Reader(subtoken_to_index=self.subtoken_to_index,
                                                  node_to_index=self.node_to_index,
                                                  target_to_index=self.target_to_index,
                                                  config=self.config,
                                                  is_evaluating=True)
-
-        self.model = Model(self.config, self.subtoken_vocab_size, self.target_vocab_size, self.nodes_vocab_size,
-                           self.target_to_index)
 
     def train(self):
         print('Starting training')
@@ -172,9 +176,7 @@ class ModelRunner:
 
         # the end of training
         if self.config.SAVE_PATH:
-            checkpoint.step.assign_add(1)
-            checkpoint_manager.save()
-            tf.saved_model.save(self.model, self.config.SAVE_PATH)
+            self.save_model(self.config.SAVE_PATH)
             print('Model saved into : {0}'.format(self.config.SAVE_PATH))
 
         elapsed = int(time.time() - start_time)
@@ -185,9 +187,12 @@ class ModelRunner:
         eval_start_time = time.time()
 
         if self.config.LOAD_PATH and not self.config.TRAIN_PATH:
-            self.model = tf.saved_model.load(self.config.LOAD_PATH)
+            self.load_model(self.config.LOAD_PATH)
+            model_dirname = os.path.dirname(self.config.LOAD_PATH)
+            print("Model restored from {}".format(self.config.LOAD_PATH))
+        elif self.config.MODEL_PATH:
+            model_dirname = os.path.dirname(self.config.MODEL_PATH)
 
-        model_dirname = os.path.dirname(self.config.MODEL_PATH)
         ref_file_name = os.path.join(model_dirname, 'ref.txt')
         predicted_file_name = os.path.join(model_dirname, 'pred.txt')
         if not os.path.exists(model_dirname):
@@ -290,3 +295,122 @@ class ModelRunner:
                    self.config.BATCH_SIZE * self.num_batches_to_log / (
                        multi_batch_elapsed if multi_batch_elapsed > 0 else 1))
         pbar.set_description(msg)
+
+    def predict(self, predict_data_lines):
+        if self.config.LOAD_PATH:
+            self.model = tf.saved_model.load(self.config.LOAD_PATH)
+        else:
+            assert False, 'Can\'t load the model - file path is missed '
+
+        predict_reader = reader.Reader(subtoken_to_index=self.subtoken_to_index,
+                                       node_to_index=self.node_to_index,
+                                       target_to_index=self.target_to_index,
+                                       config=self.config,
+                                       is_evaluating=True)
+        results = []
+        for line in predict_data_lines:
+            input_tensors = predict_reader.process_from_placeholder(line)
+
+            path_source_string = input_tensors[reader.PATH_SOURCE_STRINGS_KEY]
+            path_strings = input_tensors[reader.PATH_STRINGS_KEY]
+            path_target_string = input_tensors[reader.PATH_TARGET_STRINGS_KEY]
+            true_target_strings = input_tensors[reader.TARGET_STRING_KEY]
+
+            batched_contexts = self.model.run_encoder(input_tensors, is_training=False)
+            outputs, final_states = self.model.run_decoder(batched_contexts, input_tensors, is_training=False)
+
+            if self.config.BEAM_WIDTH > 0:
+                predicted_indices = outputs.predicted_ids
+                top_scores = outputs.beam_search_decoder_output.scores
+                attention_weights = [tf.no_op()]
+            else:
+                predicted_indices = outputs.sample_id
+                top_scores = tf.constant(1, shape=(1, 1), dtype=tf.float32)
+                attention_weights = tf.squeeze(final_states.alignment_history.stack(), 1)
+
+            top_scores = np.squeeze(top_scores, axis=0)
+            path_source_string = path_source_string.reshape((-1))
+            path_strings = path_strings.reshape((-1))
+            path_target_string = path_target_string.reshape((-1))
+            predicted_indices = np.squeeze(predicted_indices, axis=0)
+            true_target_strings = Common.binary_to_string(true_target_strings[0])
+
+            if self.config.BEAM_WIDTH > 0:
+                predicted_strings = [[self.index_to_target[sugg] for sugg in timestep]
+                                     for timestep in predicted_indices]  # (target_length, top-k)
+                predicted_strings = list(map(list, zip(*predicted_strings)))  # (top-k, target_length)
+                top_scores = [np.exp(np.sum(s)) for s in zip(*top_scores)]
+            else:
+                predicted_strings = [self.index_to_target[idx]
+                                     for idx in predicted_indices]  # (batch, target_length)
+
+            attention_per_path = None
+            if self.config.BEAM_WIDTH == 0:
+                attention_per_path = self.get_attention_per_path(path_source_string, path_strings, path_target_string,
+                                                                 attention_weights)
+
+            results.append((true_target_strings, predicted_strings, top_scores, attention_per_path))
+        return results
+
+    @staticmethod
+    def get_attention_per_path(source_strings, path_strings, target_strings, attention_weights):
+        # attention_weights:  (time, contexts)
+        results = []
+        for time_step in attention_weights:
+            attention_per_context = {}
+            for source, path, target, weight in zip(source_strings, path_strings, target_strings, time_step):
+                string_triplet = (
+                    Common.binary_to_string(source), Common.binary_to_string(path), Common.binary_to_string(target))
+                attention_per_context[string_triplet] = weight
+            results.append(attention_per_context)
+        return results
+
+    def save_model(self, path):
+        path_name = os.path.dirname(path)
+        if not os.path.exists(path_name):
+            os.makedirs(path_name)
+        checkpoint = tf.train.Checkpoint(model=self.model)
+        checkpoint.save(os.path.join(path_name, 'model'))
+
+        dictionaries_path = os.path.join(path_name, 'model.dict')
+        with open(dictionaries_path, 'wb') as file:
+            pickle.dump(self.subtoken_to_index, file)
+            pickle.dump(self.index_to_subtoken, file)
+            pickle.dump(self.subtoken_vocab_size, file)
+
+            pickle.dump(self.target_to_index, file)
+            pickle.dump(self.index_to_target, file)
+            pickle.dump(self.target_vocab_size, file)
+
+            pickle.dump(self.node_to_index, file)
+            pickle.dump(self.index_to_node, file)
+            pickle.dump(self.nodes_vocab_size, file)
+
+            pickle.dump(self.num_training_examples, file)
+            pickle.dump(self.config, file)
+
+    def load_model(self, path):
+        path_name = os.path.dirname(path)
+        if os.path.exists(path_name):
+            with open(os.path.join(path_name, 'model.dict'), 'rb') as file:
+                self.subtoken_to_index = pickle.load(file)
+                self.index_to_subtoken = pickle.load(file)
+                self.subtoken_vocab_size = pickle.load(file)
+
+                self.target_to_index = pickle.load(file)
+                self.index_to_target = pickle.load(file)
+                self.target_vocab_size = pickle.load(file)
+
+                self.node_to_index = pickle.load(file)
+                self.index_to_node = pickle.load(file)
+                self.nodes_vocab_size = pickle.load(file)
+
+                self.num_training_examples = pickle.load(file)
+                saved_config = pickle.load(file)
+                self.config.take_model_hyperparams_from(saved_config)
+
+            self.model = Model(self.config, self.subtoken_vocab_size, self.target_vocab_size, self.nodes_vocab_size,
+                               self.target_to_index)
+            checkpoint = tf.train.Checkpoint(model=self.model)
+            status = checkpoint.restore(tf.train.latest_checkpoint(path))
+            # status.assert_consumed()

@@ -32,8 +32,7 @@ if __name__ == '__main__':
         print('Accuracy: ' + str(results))
         print('Precision: ' + str(precision) + ', recall: ' + str(recall) + ', F1: ' + str(f1))
         print('Rouge: ', rouge)
-    # TODO: restore
-    # if args.predict:
-    #     model = ModelRunner(config)
-    #     predictor = InteractivePredictor(config, model)
-    #     predictor.predict()
+    if args.predict:
+        model = ModelRunner(config)
+        predictor = InteractivePredictor(config, model)
+        predictor.predict()
