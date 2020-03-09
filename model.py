@@ -33,6 +33,18 @@ class Model(tf.Module):
                                        dtype=tf.float32,
                                        initial_value=initializer(self.nodes_vocab_shape))
 
+        self.rnn = None
+        self.embed_dense_layer = None
+        self.build_encoder()
+
+        self.projection_layer = None
+        self.attention_mechanism = None
+        self.decoder_cell = None
+        self.eval_decoder = None
+        self.train_decoder = None
+        self.build_decoder()
+
+    def build_encoder(self):
         if self.config.BIRNN:
             rnn_cell_fw = tf.keras.layers.LSTMCell(self.config.RNN_SIZE // 2,
                                                    dropout=1 - self.config.RNN_DROPOUT_KEEP_PROB)
@@ -46,37 +58,37 @@ class Model(tf.Module):
         else:
             rnn_cell = tf.keras.layers.LSTMCell(self.config.RNN_SIZE, dropout=1 - self.config.RNN_DROPOUT_KEEP_PROB)
             self.rnn = tf.keras.layers.RNN(rnn_cell, dtype=tf.float32, return_state=True)
-
         self.embed_dense_layer = tf.keras.layers.Dense(units=self.config.DECODER_SIZE,
                                                        activation=tf.nn.tanh, use_bias=False)
 
+    def build_decoder(self):
         decoder_cells = [
             tf.keras.layers.LSTMCell(self.config.DECODER_SIZE, dropout=1 - self.config.RNN_DROPOUT_KEEP_PROB) for _ in
             range(self.config.NUM_DECODER_LAYERS)]
         self.decoder_cell = tf.keras.layers.StackedRNNCells(decoder_cells)
-
         self.projection_layer = tf.keras.layers.Dense(units=self.target_vocab_shape[0], use_bias=False)
-
         self.attention_mechanism = tfa.seq2seq.LuongAttention(units=self.config.DECODER_SIZE)
-
         should_save_alignment_history = self.config.BEAM_WIDTH == 0
         self.decoder_cell = tfa.seq2seq.AttentionWrapper(self.decoder_cell, self.attention_mechanism,
                                                          attention_layer_size=self.config.DECODER_SIZE,
                                                          alignment_history=should_save_alignment_history)
-
         if self.config.BEAM_WIDTH > 0:
             self.eval_decoder = tfa.seq2seq.BeamSearchDecoder(
                 cell=self.decoder_cell,
                 beam_width=self.config.BEAM_WIDTH,
                 output_layer=self.projection_layer,
+                maximum_iterations=self.config.MAX_TARGET_PARTS + 1,
                 length_penalty_weight=0.0)
         else:
             greedy_sampler = tfa.seq2seq.GreedyEmbeddingSampler()
-            self.eval_decoder = tfa.seq2seq.BasicDecoder(cell=self.decoder_cell, sampler=greedy_sampler,
+            self.eval_decoder = tfa.seq2seq.BasicDecoder(cell=self.decoder_cell,
+                                                         sampler=greedy_sampler,
+                                                         maximum_iterations=self.config.MAX_TARGET_PARTS + 1,
                                                          output_layer=self.projection_layer)
-
         sampler = tfa.seq2seq.sampler.TrainingSampler()
-        self.train_decoder = tfa.seq2seq.BasicDecoder(cell=self.decoder_cell, sampler=sampler,
+        self.train_decoder = tfa.seq2seq.BasicDecoder(cell=self.decoder_cell,
+                                                      sampler=sampler,
+                                                      maximum_iterations=self.config.MAX_TARGET_PARTS + 1,
                                                       output_layer=self.projection_layer)
 
     @tf.function
@@ -106,6 +118,8 @@ class Model(tf.Module):
 
     # @tf.function
     def run_decoder(self, batched_contexts, input_tensors, is_training):
+        self.setup_attention_memory(batched_contexts)
+
         target_index = input_tensors[reader.TARGET_INDEX_KEY]
         valid_context_mask = input_tensors[reader.VALID_CONTEXT_MASK_KEY]
         batch_size = tf.shape(target_index)[0]
@@ -218,14 +232,14 @@ class Model(tf.Module):
         if is_training:
             outputs, final_states, final_sequence_lengths = self.train_decoder(
                 target_words_embedding,
-                training=is_training,
+                training=True,
                 initial_state=decoder_initial_state,
                 sequence_length=tf.ones([batch_size], dtype=tf.int32) * (self.config.MAX_TARGET_PARTS + 1))
         else:
             if self.config.BEAM_WIDTH > 0:
                 outputs, final_states, final_sequence_lengths = self.eval_decoder(
                     target_words_embedding,
-                    training=is_training,
+                    training=False,
                     initial_state=decoder_initial_state,
                     start_token=start_fill,
                     end_token=self.target_to_index[Common.PAD],
@@ -233,7 +247,7 @@ class Model(tf.Module):
             else:
                 outputs, final_states, final_sequence_lengths = self.eval_decoder(
                     target_words_embedding,
-                    training=is_training,
+                    training=False,
                     initial_state=decoder_initial_state,
                     start_tokens=start_fill,
                     end_token=0)

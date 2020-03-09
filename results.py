@@ -8,7 +8,7 @@ def trace_evaluation(output_file, correct_predictions, total_predictions, elapse
     output_file.write(accuracy_message + '\n')
     output_file.write(throughput_message)
     print(accuracy_message)
-    print(throughput_message)
+    print(throughput_message, flush=True)
 
 
 def calculate_results(true_positive, false_positive, false_negative):

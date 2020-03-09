@@ -7,6 +7,10 @@ from modelrunner import ModelRunner
 from args import read_args
 
 if __name__ == '__main__':
+    physical_devices = tf.config.list_physical_devices('GPU')
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    # tf.config.set_visible_devices([], 'GPU')
+
     args = read_args()
 
     np.random.seed(args.seed)
@@ -22,17 +26,14 @@ if __name__ == '__main__':
     if config.TRAIN_PATH:
         model = ModelRunner(config)
         model.train()
+    if config.TEST_PATH and not args.data_path:
+        model = ModelRunner(config)
+        results, precision, recall, f1, rouge = model.evaluate()
+        print('Accuracy: ' + str(results))
+        print('Precision: ' + str(precision) + ', recall: ' + str(recall) + ', F1: ' + str(f1))
+        print('Rouge: ', rouge)
     # TODO: restore
-    # if config.TEST_PATH and not args.data_path:
-    #     model = ModelRunner(config, is_training=False)
-    #     results, precision, recall, f1, rouge = model.evaluate()
-    #     print('Accuracy: ' + str(results))
-    #     print('Precision: ' + str(precision) + ', recall: ' + str(recall) + ', F1: ' + str(f1))
-    #     print('Rouge: ', rouge)
     # if args.predict:
-    #     model = ModelRunner(config, is_training=False)
+    #     model = ModelRunner(config)
     #     predictor = InteractivePredictor(config, model)
     #     predictor.predict()
-    # if args.release and args.load_path:
-    #     model = ModelRunner(config, is_training=False)
-    #     model.evaluate(release=True)

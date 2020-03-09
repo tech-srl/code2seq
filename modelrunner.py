@@ -2,6 +2,7 @@ import _pickle as pickle
 import tqdm
 import os
 import time
+import sys
 
 import tensorflow as tf
 from rouge import FilesRouge
@@ -113,7 +114,6 @@ class ModelRunner:
                 batch_size = tf.shape(target_index)[0]
                 with tf.GradientTape() as tape:
                     batched_contexts = self.model.run_encoder(input_tensors, is_training=True)
-                    self.model.setup_attention_memory(batched_contexts)
                     outputs, _ = self.model.run_decoder(batched_contexts, input_tensors, is_training=True)
 
                     logits = outputs.rnn_output  # (batch, max_output_length, dim * 2 + rnn_size)
@@ -126,7 +126,6 @@ class ModelRunner:
                 if self.config.USE_MOMENTUM:
                     clipped_gradients, _ = tf.clip_by_global_norm(gradients, clip_norm=5)
                 optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
-                pbar.update(self.config.BATCH_SIZE)
 
                 sum_loss += loss
                 batch_num += 1
@@ -135,6 +134,9 @@ class ModelRunner:
                     self.trace(pbar, sum_loss, batch_num, multi_batch_start_time)
                     sum_loss = 0
                     multi_batch_start_time = time.time()
+
+                pbar.update(self.config.BATCH_SIZE)
+                sys.stdout.flush()
 
             # the end of an epoch
             epochs_trained += 1
@@ -207,7 +209,6 @@ class ModelRunner:
                 true_target_strings = input_tensors[reader.TARGET_STRING_KEY]
 
                 batched_contexts = self.model.run_encoder(input_tensors, is_training=False)
-                self.model.setup_attention_memory(batched_contexts)
                 outputs, final_states = self.model.run_decoder(batched_contexts, input_tensors, is_training=False)
 
                 if self.config.BEAM_WIDTH > 0:
@@ -250,7 +251,7 @@ class ModelRunner:
                     elapsed = time.time() - start_time
                     trace_evaluation(output_file, num_correct_predictions, total_predictions, elapsed)
 
-            print('Done testing, epoch reached')
+            print('Done testing, epoch reached', flush=True)
             output_file.write(str(num_correct_predictions / total_predictions) + '\n')
 
         elapsed = int(time.time() - eval_start_time)
