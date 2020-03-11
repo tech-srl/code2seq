@@ -137,7 +137,7 @@ If `True`, use Momentum optimizer with nesterov. If `False`, use Adam
 
 This project currently supports Java and C\# as the input languages.
 
-_**March 2020** - a code2seq extractor for C++. See: [https://github.com/Kolkir/cppminer](https://github.com/tech-https://github.com/Kolkir/cppminer)._
+_**March 2020** - a code2seq extractor for C++. See: [https://github.com/Kolkir/cppminer](https://github.com/Kolkir/cppminer)._
 
 _**January 2020** - a code2seq extractor for Python (specifically targeting the Python150k dataset) was contributed by [@stasbel](https://github.com/stasbel). See: [https://github.com/tech-srl/code2seq/tree/master/Python150kExtractor](https://github.com/tech-srl/code2seq/tree/master/Python150kExtractor)._
 
