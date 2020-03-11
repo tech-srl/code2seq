@@ -11,7 +11,6 @@ class InteractivePredictor:
     exit_keywords = ['exit', 'quit', 'q']
 
     def __init__(self, config, model):
-        model.predict([])
         self.model = model
         self.config = config
         self.path_extractor = Extractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=2)
