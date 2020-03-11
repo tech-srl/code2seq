@@ -1,10 +1,10 @@
-import _pickle as pickle
-import tqdm
 import os
-import time
 import sys
+import time
 
+import _pickle as pickle
 import tensorflow as tf
+import tqdm
 from rouge import FilesRouge
 
 import reader
@@ -183,15 +183,21 @@ class ModelRunner:
         print("Training time: %sh%sm%ss\n" % ((elapsed // 60 // 60), (elapsed // 60) % 60, elapsed % 60))
 
     def evaluate(self):
+        if not self.model:
+            print('Model is not initialized')
+            exit(-1)
+
         print("Testing...")
         eval_start_time = time.time()
 
         if self.config.LOAD_PATH and not self.config.TRAIN_PATH:
-            self.load_model(self.config.LOAD_PATH)
             model_dirname = os.path.dirname(self.config.LOAD_PATH)
-            print("Model restored from {}".format(self.config.LOAD_PATH))
         elif self.config.MODEL_PATH:
             model_dirname = os.path.dirname(self.config.MODEL_PATH)
+        else:
+            model_dirname = None
+            print('Model directory is mossing')
+            exit(-1)
 
         ref_file_name = os.path.join(model_dirname, 'ref.txt')
         predicted_file_name = os.path.join(model_dirname, 'pred.txt')
@@ -297,10 +303,9 @@ class ModelRunner:
         pbar.set_description(msg)
 
     def predict(self, predict_data_lines):
-        if self.config.LOAD_PATH:
-            self.model = tf.saved_model.load(self.config.LOAD_PATH)
-        else:
-            assert False, 'Can\'t load the model - file path is missed '
+        if not self.model:
+            print('Model is not initialized')
+            exit(-1)
 
         predict_reader = reader.Reader(subtoken_to_index=self.subtoken_to_index,
                                        node_to_index=self.node_to_index,
@@ -328,12 +333,12 @@ class ModelRunner:
                 top_scores = tf.constant(1, shape=(1, 1), dtype=tf.float32)
                 attention_weights = tf.squeeze(final_states.alignment_history.stack(), 1)
 
-            top_scores = np.squeeze(top_scores, axis=0)
-            path_source_string = path_source_string.reshape((-1))
-            path_strings = path_strings.reshape((-1))
-            path_target_string = path_target_string.reshape((-1))
-            predicted_indices = np.squeeze(predicted_indices, axis=0)
-            true_target_strings = Common.binary_to_string(true_target_strings[0])
+            top_scores = np.squeeze(top_scores.numpy(), axis=0)
+            path_source_string = path_source_string.numpy().reshape((-1))
+            path_strings = path_strings.numpy().reshape((-1))
+            path_target_string = path_target_string.numpy().reshape((-1))
+            predicted_indices = np.squeeze(predicted_indices.numpy(), axis=0)
+            true_target_strings = Common.binary_to_string(true_target_strings.numpy()[0])
 
             if self.config.BEAM_WIDTH > 0:
                 predicted_strings = [[self.index_to_target[sugg] for sugg in timestep]
@@ -347,7 +352,7 @@ class ModelRunner:
             attention_per_path = None
             if self.config.BEAM_WIDTH == 0:
                 attention_per_path = self.get_attention_per_path(path_source_string, path_strings, path_target_string,
-                                                                 attention_weights)
+                                                                 attention_weights.numpy())
 
             results.append((true_target_strings, predicted_strings, top_scores, attention_per_path))
         return results
@@ -413,4 +418,4 @@ class ModelRunner:
                                self.target_to_index)
             checkpoint = tf.train.Checkpoint(model=self.model)
             status = checkpoint.restore(tf.train.latest_checkpoint(path))
-            # status.assert_consumed()
+            status.expect_partial()

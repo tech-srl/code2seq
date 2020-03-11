@@ -1,10 +1,12 @@
 import os
+
 import _pickle as pickle
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
+
+from args import read_args
 from common import Common
 from config import Config
-from args import read_args
 
 TARGET_INDEX_KEY = 'TARGET_INDEX_KEY'
 TARGET_STRING_KEY = 'TARGET_STRING_KEY'
@@ -70,7 +72,11 @@ class Reader:
 
     def process_from_placeholder(self, row):
         parts = tf.io.decode_csv(row, record_defaults=self.record_defaults, field_delim=' ', use_quote_delim=False)
-        return self.process_dataset(*parts)
+        res_dict = self.process_dataset(*parts)
+        # add batch size dimension
+        for key, value in res_dict.items():
+            res_dict[key] = tf.expand_dims(value, 0)
+        return res_dict
 
     def process_dataset(self, *row_parts):
         row_parts = list(row_parts)
