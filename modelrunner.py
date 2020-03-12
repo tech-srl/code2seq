@@ -234,7 +234,7 @@ class ModelRunner:
                 if self.config.BEAM_WIDTH > 0:
                     # predicted indices: (batch, time, beam_width)
                     predicted_strings = [[[self.index_to_target[i] for i in timestep] for timestep in example] for
-                                         example in predicted_indices]
+                                         example in predicted_indices.numpy()]
                     predicted_strings = [list(map(list, zip(*example))) for example in
                                          predicted_strings]  # (batch, top-k, target_length)
                     pred_file.write('\n'.join(

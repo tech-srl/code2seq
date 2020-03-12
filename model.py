@@ -42,6 +42,7 @@ class Model(tf.Module):
         self.decoder_cell = None
         self.eval_decoder = None
         self.train_decoder = None
+        self._beam_embedding = None
         self.build_decoder()
 
     def build_encoder(self):
@@ -75,6 +76,7 @@ class Model(tf.Module):
         if self.config.BEAM_WIDTH > 0:
             self.eval_decoder = tfa.seq2seq.BeamSearchDecoder(
                 cell=self.decoder_cell,
+                embedding_fn=lambda ids: tf.nn.embedding_lookup(self._beam_embedding, ids),
                 beam_width=self.config.BEAM_WIDTH,
                 output_layer=self.projection_layer,
                 maximum_iterations=self.config.MAX_TARGET_PARTS + 1,
@@ -237,13 +239,13 @@ class Model(tf.Module):
                 sequence_length=tf.ones([batch_size], dtype=tf.int32) * (self.config.MAX_TARGET_PARTS + 1))
         else:
             if self.config.BEAM_WIDTH > 0:
+                self._beam_embedding = target_words_embedding
                 outputs, final_states, final_sequence_lengths = self.eval_decoder(
-                    target_words_embedding,
+                    inputs=None,
                     training=False,
                     initial_state=decoder_initial_state,
-                    start_token=start_fill,
-                    end_token=self.target_to_index[Common.PAD],
-                    sequence_length=tf.ones([batch_size], dtype=tf.int32) * (self.config.MAX_TARGET_PARTS + 1))
+                    start_tokens=start_fill,
+                    end_token=self.target_to_index[Common.PAD])
             else:
                 outputs, final_states, final_sequence_lengths = self.eval_decoder(
                     target_words_embedding,
