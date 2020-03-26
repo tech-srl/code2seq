@@ -35,5 +35,5 @@ if __name__ == '__main__':
         print('Rouge: ', rouge)
     if args.predict:
         model = ModelRunner(config)
-        predictor = InteractivePredictor(config, model)
+        predictor = InteractivePredictor(config, model, args.predict)
         predictor.predict()

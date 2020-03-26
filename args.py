@@ -18,7 +18,8 @@ def read_args():
     parser.add_argument("-t", "--test", dest="test_path",
                         help="path to test file", metavar="FILE", required=False)
 
-    parser.add_argument('--predict', action='store_true')
+    parser.add_argument('-p', '--predict', dest='predict', type=str, default='java',
+                        help='starts prediction mode, argument is "cpp" or "java" dependin on language model')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--seed', type=int, default=239)
     return parser.parse_args()

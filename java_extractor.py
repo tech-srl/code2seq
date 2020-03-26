@@ -5,7 +5,7 @@ import requests
 from common import PathContextInformation
 
 
-class Extractor:
+class JavaExtractor:
     def __init__(self, config, extractor_api_url, max_path_length, max_path_width):
         self.config = config
         self.max_path_length = max_path_length

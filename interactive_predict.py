@@ -1,5 +1,6 @@
 from common import Common
-from extractor import Extractor
+from java_extractor import JavaExtractor
+from cpp_extractor import CppExtractor
 
 SHOW_TOP_CONTEXTS = 10
 MAX_PATH_LENGTH = 8
@@ -10,10 +11,15 @@ EXTRACTION_API = 'https://po3g2dx2qa.execute-api.us-east-1.amazonaws.com/product
 class InteractivePredictor:
     exit_keywords = ['exit', 'quit', 'q']
 
-    def __init__(self, config, model):
+    def __init__(self, config, model, language):
         self.model = model
         self.config = config
-        self.path_extractor = Extractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=2)
+        if language == 'java':
+            self.path_extractor = JavaExtractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=2)
+        elif language == 'cpp':
+            self.path_extractor = CppExtractor(config)
+        else:
+            assert False, 'Unsupported language model'
 
     @staticmethod
     def read_file(input_filename):
@@ -21,7 +27,7 @@ class InteractivePredictor:
             return file.readlines()
 
     def predict(self):
-        input_filename = 'Input.java'
+        input_filename = 'Input.source'
         print('Serving')
         while True:
             print('Modify the file: "' + input_filename + '" and press any key when ready, or "q" / "exit" to exit')

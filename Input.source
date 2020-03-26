@@ -1,0 +1,5 @@
+String getName() {
+    String name = new String();
+    name = "object";
+    return name;
+}
