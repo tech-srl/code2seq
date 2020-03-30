@@ -37,6 +37,19 @@ class Config:
             self.DATA_NUM_CONTEXTS = otherConfig.DATA_NUM_CONTEXTS
 
     def __init__(self, args):
+        if args:
+            self.TRAIN_PATH = args.data_path if args.data_path is not None else None
+            self.TEST_PATH = args.test_path if args.test_path is not None else None
+            self.MODEL_PATH = args.model_path if args.model_path is not None else None
+            self.SAVE_PATH = args.save_path if args.save_path is not None else None
+            self.LOAD_PATH = args.load_path if args.load_path is not None else None
+        else:
+            self.TRAIN_PATH = None
+            self.TEST_PATH = None
+            self.MODEL_PATH = None
+            self.SAVE_PATH = None
+            self.LOAD_PATH = None
+
         self.NUM_EPOCHS = 0
         self.SAVE_EVERY_EPOCHS = 0
         self.PATIENCE = 0
@@ -44,8 +57,6 @@ class Config:
         self.READER_NUM_PARALLEL_BATCHES = 0
         self.SHUFFLE_BUFFER_SIZE = 0
         self.CSV_BUFFER_SIZE = None
-        self.TRAIN_PATH = args.data_path
-        self.TEST_PATH = args.test_path if args.test_path is not None else ''
         self.DATA_NUM_CONTEXTS = 0
         self.MAX_CONTEXTS = 0
         self.SUBTOKENS_VOCAB_MAX_SIZE = 0
@@ -54,9 +65,6 @@ class Config:
         self.RNN_SIZE = 0
         self.DECODER_SIZE = 0
         self.NUM_DECODER_LAYERS = 0
-        self.MODEL_PATH = args.model_path if args.model_path is not None else ''
-        self.SAVE_PATH = args.save_path if args.save_path is not None else ''
-        self.LOAD_PATH = args.load_path if args.load_path is not None else ''
         self.MAX_PATH_LENGTH = 0
         self.MAX_NAME_PARTS = 0
         self.MAX_TARGET_PARTS = 0
