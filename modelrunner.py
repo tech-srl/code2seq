@@ -302,6 +302,23 @@ class ModelRunner:
                        multi_batch_elapsed if multi_batch_elapsed > 0 else 1))
         pbar.set_description(msg)
 
+    def encode(self, predict_data_lines):
+        if not self.model:
+            print('Model is not initialized')
+            exit(-1)
+
+        predict_reader = reader.Reader(subtoken_to_index=self.subtoken_to_index,
+                                       node_to_index=self.node_to_index,
+                                       target_to_index=self.target_to_index,
+                                       config=self.config,
+                                       is_evaluating=True)
+        results = []
+        for line in predict_data_lines:
+            input_tensors = predict_reader.process_from_placeholder(line)
+            batched_contexts = self.model.run_encoder(input_tensors, is_training=False)
+            results.append(batched_contexts)
+        return results
+
     def predict(self, predict_data_lines):
         if not self.model:
             print('Model is not initialized')
