@@ -20,23 +20,24 @@ class CppExtractor:
         try:
             tmp.write(code_string)
             tmp.close()
-
-            self.parser.parse(compiler_args=[], file_path=tmp.name)
-            pc_info_dict = {}
-            result = []
-            for sample in self.parser.samples:
-                for context in sample.contexts:
-                    info_context = {'name1': make_str_key(context.start_token),
-                                    'name2': make_str_key(context.end_token),
-                                    'path': make_str_key(context.path.tokens),
-                                    'shortPath': make_str_key(context.path.tokens)}
-                    pc_info = PathContextInformation(info_context)
-                    pc_info_dict[(pc_info.token1, pc_info.shortPath, pc_info.token2)] = pc_info
-                result_line = str(sample)
-                space_padding = ' ' * (self.config.DATA_NUM_CONTEXTS - len(sample.contexts))
-                result_line += space_padding
-                result.append(result_line)
+            return self.extract_paths(compiler_args=[], file_path=tmp.name)
         finally:
             os.unlink(tmp.name)
 
+    def extract_paths(self, compiler_args, file_path):
+        self.parser.parse(compiler_args=compiler_args, file_path=file_path)
+        pc_info_dict = {}
+        result = []
+        for sample in self.parser.samples:
+            for context in sample.contexts:
+                info_context = {'name1': make_str_key(context.start_token),
+                                'name2': make_str_key(context.end_token),
+                                'path': make_str_key(context.path.tokens),
+                                'shortPath': make_str_key(context.path.tokens)}
+                pc_info = PathContextInformation(info_context)
+                pc_info_dict[(pc_info.token1, pc_info.shortPath, pc_info.token2)] = pc_info
+            result_line = str(sample)
+            space_padding = ' ' * (self.config.DATA_NUM_CONTEXTS - len(sample.contexts))
+            result_line += space_padding
+            result.append(result_line)
         return result, pc_info_dict
