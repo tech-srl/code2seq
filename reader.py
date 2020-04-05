@@ -141,8 +141,14 @@ class Reader:
         flat_path_strings = tf.reshape(path_strings, [-1])
         split_path = tf.strings.split(flat_path_strings, sep='|')
         sparse_split_path = split_path.to_sparse()
+
+        if self.config.MAX_PATH_LENGTH < sparse_split_path.dense_shape[1]:
+            sparse_split_path = tf.sparse.slice(sparse_split_path, [0, 0],
+                                                [sparse_split_path.dense_shape[0], self.config.MAX_PATH_LENGTH])
+
         sparse_split_path = tf.sparse.reset_shape(sparse_split_path,
                                                   [self.config.MAX_CONTEXTS, self.config.MAX_PATH_LENGTH])
+
         dense_split_path = tf.sparse.to_dense(sp_input=sparse_split_path,
                                               default_value=Common.PAD)  # (batch, max_contexts, max_path_length)
 
@@ -197,7 +203,6 @@ class Reader:
 
 
 if __name__ == '__main__':
-
     # tf.config.experimental_run_functions_eagerly(True)
 
     print("tf executing eagerly: " + str(tf.executing_eagerly()))
@@ -230,39 +235,52 @@ if __name__ == '__main__':
         print('Loaded nodes vocab. size: %d' % nodes_vocab_size)
 
         reader = Reader(subtoken_to_index, target_to_index, node_to_index, config, False)
-        dataset = reader.get_dataset()
 
-        try:
-            for output in dataset:
-                target_indices = output[TARGET_INDEX_KEY].numpy()
-                target_strings = output[TARGET_STRING_KEY].numpy()
-                target_lengths = output[TARGET_LENGTH_KEY].numpy()
-                path_source_indices = output[PATH_SOURCE_INDICES_KEY].numpy()
-                node_indices = output[NODE_INDICES_KEY].numpy()
-                path_target_indices = output[PATH_TARGET_INDICES_KEY].numpy()
-                valid_context_mask = output[VALID_CONTEXT_MASK_KEY].numpy()
-                path_source_lengths = output[PATH_SOURCE_LENGTHS_KEY].numpy()
-                path_lengths = output[PATH_LENGTHS_KEY].numpy()
-                path_target_lengths = output[PATH_TARGET_LENGTHS_KEY].numpy()
-                path_source_strings = output[PATH_SOURCE_STRINGS_KEY].numpy()
-                path_strings = output[PATH_STRINGS_KEY].numpy()
-                path_target_strings = output[PATH_TARGET_STRINGS_KEY].numpy()
+        test_manually = True
 
-                print('Target strings: ', Common.binary_to_string_list(target_strings))
-                print('Context strings: ', Common.binary_to_string_3d(
-                    np.concatenate([path_source_strings, path_strings, path_target_strings], -1)))
-                print('Target indices: ', target_indices)
-                print('Target lengths: ', target_lengths)
-                print('Path source strings: ', Common.binary_to_string_3d(path_source_strings))
-                print('Path source indices: ', path_source_indices)
-                print('Path source lengths: ', path_source_lengths)
-                print('Path strings: ', Common.binary_to_string_3d(path_strings))
-                print('Node indices: ', node_indices)
-                print('Path lengths: ', path_lengths)
-                print('Path target strings: ', Common.binary_to_string_3d(path_target_strings))
-                print('Path target indices: ', path_target_indices)
-                print('Path target lengths: ', path_target_lengths)
-                print('Valid context mask: ', valid_context_mask)
+        if test_manually:
+            with open('{}.train.c2s'.format(config.TRAIN_PATH), 'r') as data_file:
+                for test_sample in data_file.readlines():
+                    test_sample = test_sample.strip()
+                    contexts_num = sum(ch.isspace() for ch in test_sample)
+                    space_padding = ' ' * (config.DATA_NUM_CONTEXTS - contexts_num)
+                    test_sample += space_padding
 
-        except tf.errors.OutOfRangeError:
-            print('Done training, epoch reached')
+                    reader.process_from_placeholder(test_sample)
+        else:
+            dataset = reader.get_dataset()
+
+            try:
+                for output in dataset:
+                    target_indices = output[TARGET_INDEX_KEY].numpy()
+                    target_strings = output[TARGET_STRING_KEY].numpy()
+                    target_lengths = output[TARGET_LENGTH_KEY].numpy()
+                    path_source_indices = output[PATH_SOURCE_INDICES_KEY].numpy()
+                    node_indices = output[NODE_INDICES_KEY].numpy()
+                    path_target_indices = output[PATH_TARGET_INDICES_KEY].numpy()
+                    valid_context_mask = output[VALID_CONTEXT_MASK_KEY].numpy()
+                    path_source_lengths = output[PATH_SOURCE_LENGTHS_KEY].numpy()
+                    path_lengths = output[PATH_LENGTHS_KEY].numpy()
+                    path_target_lengths = output[PATH_TARGET_LENGTHS_KEY].numpy()
+                    path_source_strings = output[PATH_SOURCE_STRINGS_KEY].numpy()
+                    path_strings = output[PATH_STRINGS_KEY].numpy()
+                    path_target_strings = output[PATH_TARGET_STRINGS_KEY].numpy()
+
+                    print('Target strings: ', Common.binary_to_string_list(target_strings))
+                    print('Context strings: ', Common.binary_to_string_3d(
+                        np.concatenate([path_source_strings, path_strings, path_target_strings], -1)))
+                    print('Target indices: ', target_indices)
+                    print('Target lengths: ', target_lengths)
+                    print('Path source strings: ', Common.binary_to_string_3d(path_source_strings))
+                    print('Path source indices: ', path_source_indices)
+                    print('Path source lengths: ', path_source_lengths)
+                    print('Path strings: ', Common.binary_to_string_3d(path_strings))
+                    print('Node indices: ', node_indices)
+                    print('Path lengths: ', path_lengths)
+                    print('Path target strings: ', Common.binary_to_string_3d(path_target_strings))
+                    print('Path target indices: ', path_target_indices)
+                    print('Path target lengths: ', path_target_lengths)
+                    print('Valid context mask: ', valid_context_mask)
+
+            except tf.errors.OutOfRangeError:
+                print('Done training, epoch reached')
