@@ -197,7 +197,7 @@ should be implemented, and be called by [preprocess.sh](preprocess.sh).
 Basically, an extractor should be able to output for each directory containing source files:
   * A single text file, where each row is an example.
   * Each example is a space-delimited list of fields, where:
-  1. The first field is the target label, internally delimited by the "|" character (for example: `compare|ignore|case`
+  1. The first field is the target label, internally delimited by the "|" character (for example: `compare|ignore|case`)
   2. Each of the following field are contexts, where each context has three components separated by commas (","). None of these components can include spaces nor commas.
   
   We refer to these three components as a token, a path, and another token, but in general other types of ternary contexts can be considered.  
