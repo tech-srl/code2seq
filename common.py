@@ -73,9 +73,7 @@ class Common:
 
     @staticmethod
     def unique(sequence):
-        unique = []
-        [unique.append(item) for item in sequence if item not in unique]
-        return unique
+        return list(set(sequence))
 
     @staticmethod
     def parse_results(result, pc_info_dict, topk=5):
