@@ -1,18 +1,18 @@
 package JavaExtractor.FeaturesEntities;
 
 public class ProgramRelation {
-    private final Property m_Source;
-    private final Property m_Target;
-    private final String m_Path;
+    Property source;
+    Property target;
+    String path;
 
     public ProgramRelation(Property sourceName, Property targetName, String path) {
-        m_Source = sourceName;
-        m_Target = targetName;
-        m_Path = path;
+        source = sourceName;
+        target = targetName;
+        this.path = path;
     }
 
     public String toString() {
-        return String.format("%s,%s,%s", m_Source.getName(), m_Path,
-                m_Target.getName());
+        return String.format("%s,%s,%s", source.getName(), path,
+                target.getName());
     }
 }

@@ -40,6 +40,9 @@ public class CommandLineValues {
     @Option(name = "--max_child_id", required = false)
     public int MaxChildId = 3;
 
+    @Option(name = "--json_output", required = false)
+    public boolean JsonOutput = false;
+
     public CommandLineValues(String... args) throws CmdLineException {
         CmdLineParser parser = new CmdLineParser(this);
         try {

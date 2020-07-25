@@ -12,13 +12,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import com.google.gson.Gson;
 
 class ExtractFeaturesTask implements Callable<Void> {
-    private final CommandLineValues m_CommandLineValues;
+    private final CommandLineValues commandLineValues;
     private final Path filePath;
 
     public ExtractFeaturesTask(CommandLineValues commandLineValues, Path path) {
-        m_CommandLineValues = commandLineValues;
+        this.commandLineValues = commandLineValues;
         this.filePath = path;
     }
 
@@ -49,8 +50,8 @@ class ExtractFeaturesTask implements Callable<Void> {
     private ArrayList<ProgramFeatures> extractSingleFile() throws IOException {
         String code;
 
-        if (m_CommandLineValues.MaxFileLength > 0 &&
-                Files.lines(filePath, Charset.defaultCharset()).count() > m_CommandLineValues.MaxFileLength) {
+        if (commandLineValues.MaxFileLength > 0 &&
+                Files.lines(filePath, Charset.defaultCharset()).count() > commandLineValues.MaxFileLength) {
             return new ArrayList<>();
         }
         try {
@@ -59,7 +60,7 @@ class ExtractFeaturesTask implements Callable<Void> {
             e.printStackTrace();
             code = Common.EmptyString;
         }
-        FeatureExtractor featureExtractor = new FeatureExtractor(m_CommandLineValues);
+        FeatureExtractor featureExtractor = new FeatureExtractor(commandLineValues, this.filePath);
 
         return featureExtractor.extractFeatures(code);
     }
@@ -74,8 +75,14 @@ class ExtractFeaturesTask implements Callable<Void> {
         for (ProgramFeatures singleMethodFeatures : features) {
             StringBuilder builder = new StringBuilder();
 
-            String toPrint = singleMethodFeatures.toString();
-            if (m_CommandLineValues.PrettyPrint) {
+            String toPrint;
+            if (commandLineValues.JsonOutput) {
+                toPrint = new Gson().toJson(singleMethodFeatures);
+            }
+            else {
+                toPrint = singleMethodFeatures.toString();
+            }
+            if (commandLineValues.PrettyPrint) {
                 toPrint = toPrint.replace(" ", "\n\t");
             }
             builder.append(toPrint);

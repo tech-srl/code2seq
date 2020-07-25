@@ -1,17 +1,22 @@
 package JavaExtractor.FeaturesEntities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class ProgramFeatures {
-    private final String name;
+    String name;
 
-    private final ArrayList<ProgramRelation> features = new ArrayList<>();
+    transient ArrayList<ProgramRelation> features = new ArrayList<>();
+    String textContent;
 
-    public ProgramFeatures(String name) {
+    String filePath;
+
+    public ProgramFeatures(String name, Path filePath, String textContent) {
+
         this.name = name;
+        this.filePath = filePath.toAbsolutePath().toString();
+        this.textContent = textContent;
     }
 
     @SuppressWarnings("StringBufferReplaceableByString")
@@ -29,7 +34,6 @@ public class ProgramFeatures {
         features.add(newRelation);
     }
 
-    @JsonIgnore
     public boolean isEmpty() {
         return features.isEmpty();
     }

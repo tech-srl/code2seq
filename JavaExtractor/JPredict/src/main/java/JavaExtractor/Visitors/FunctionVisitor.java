@@ -12,11 +12,11 @@ import java.util.Arrays;
 
 @SuppressWarnings("StringEquality")
 public class FunctionVisitor extends VoidVisitorAdapter<Object> {
-    private final ArrayList<MethodContent> m_Methods = new ArrayList<>();
-    private final CommandLineValues m_CommandLineValues;
+    private final ArrayList<MethodContent> methods = new ArrayList<>();
+    private final CommandLineValues commandLineValues;
 
     public FunctionVisitor(CommandLineValues commandLineValues) {
-        this.m_CommandLineValues = commandLineValues;
+        this.commandLineValues = commandLineValues;
     }
 
     @Override
@@ -38,14 +38,13 @@ public class FunctionVisitor extends VoidVisitorAdapter<Object> {
             splitName = String.join(Common.internalSeparator, splitNameParts);
         }
 
+        node.setName(Common.methodName);
+
         if (node.getBody() != null) {
             long methodLength = getMethodLength(node.getBody().toString());
-            if (m_CommandLineValues.MaxCodeLength > 0) {
-                if (methodLength >= m_CommandLineValues.MinCodeLength && methodLength <= m_CommandLineValues.MaxCodeLength) {
-                    m_Methods.add(new MethodContent(leaves, splitName));
-                }
-            } else {
-                m_Methods.add(new MethodContent(leaves, splitName));
+            if (commandLineValues.MaxCodeLength <= 0 ||
+                    (methodLength >= commandLineValues.MinCodeLength && methodLength <= commandLineValues.MaxCodeLength)) {
+                methods.add(new MethodContent(leaves, splitName, node.toString()));
             }
         }
     }
@@ -65,6 +64,6 @@ public class FunctionVisitor extends VoidVisitorAdapter<Object> {
     }
 
     public ArrayList<MethodContent> getMethodContents() {
-        return m_Methods;
+        return methods;
     }
 }

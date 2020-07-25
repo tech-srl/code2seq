@@ -11,6 +11,8 @@ import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,9 +28,11 @@ class FeatureExtractor {
             .of("AssignExpr", "ArrayAccessExpr", "FieldAccessExpr", "MethodCallExpr")
             .collect(Collectors.toCollection(HashSet::new));
     private final CommandLineValues m_CommandLineValues;
+    private final Path filePath;
 
-    public FeatureExtractor(CommandLineValues commandLineValues) {
+    public FeatureExtractor(CommandLineValues commandLineValues, Path filePath) {
         this.m_CommandLineValues = commandLineValues;
+        this.filePath = filePath;
     }
 
     private static ArrayList<Node> getTreeStack(Node node) {
@@ -90,7 +94,8 @@ class FeatureExtractor {
 
     private ProgramFeatures generatePathFeaturesForFunction(MethodContent methodContent) {
         ArrayList<Node> functionLeaves = methodContent.getLeaves();
-        ProgramFeatures programFeatures = new ProgramFeatures(methodContent.getName());
+        ProgramFeatures programFeatures = new ProgramFeatures(
+                methodContent.getName(), this.filePath, methodContent.getContent());
 
         for (int i = 0; i < functionLeaves.size(); i++) {
             for (int j = i + 1; j < functionLeaves.size(); j++) {
