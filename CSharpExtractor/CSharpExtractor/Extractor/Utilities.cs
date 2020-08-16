@@ -25,7 +25,7 @@ namespace Extractor
         [Option('o', "ofile_name", Default = "test.txt", HelpText = "Output file name")]
         public String OFileName { get; set; }
 
-        [Option('h', "no_hash", Default = false, HelpText = "When enabled, prints the whole path strings (not hashed)")]
+        [Option('h', "no_hash", Default = true, HelpText = "When enabled, prints the whole path strings (not hashed)")]
         public Boolean NoHash { get; set; }
 
         [Option('l', "max_contexts", Default = 30000, HelpText = "Max number of path contexts to sample. Affects only very large snippets")]
