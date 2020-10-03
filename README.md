@@ -80,14 +80,7 @@ tar -xvzf java-large-model.tar.gz
 ```
 
 ##### Note:
-This trained model is in a "released" state, which means that we stripped it from its training parameters and can thus be used for inference, but cannot be further trained. 
-
-#### Downloading a trained model that can be further trained (270 MB)
-This is the same model, that **can** be further trained:
-```
-wget https://code2seq.s3.amazonaws.com/model/java-large/java-large-trainable.tar.gz
-tar -xvzf java-large-trainable.tar.gz
-```
+This trained model is in a "released" state, which means that we stripped it from its training parameters.
 
 #### Training a model from scratch
 To train a model from scratch:
