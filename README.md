@@ -34,7 +34,7 @@ Table of Contents
 
 ## Requirements
   * [python3](https://www.linuxbabe.com/ubuntu/install-python-3-6-ubuntu-16-04-16-10-17-04) 
-  * TensorFlow 1.12 or newer ([install](https://www.tensorflow.org/install/install_linux)). To check TensorFlow version:
+  * TensorFlow 1.12 ([install](https://www.tensorflow.org/install/install_linux)). To check TensorFlow version:
 > python3 -c 'import tensorflow as tf; print(tf.\_\_version\_\_)'
   - For a TensorFlow 2.1 implementation by [@Kolkir](https://github.com/Kolkir/), see: [https://github.com/Kolkir/code2seq](https://github.com/Kolkir/code2seq)
   * For [creating a new Java dataset](#creating-and-preprocessing-a-new-java-dataset) or [manually examining a trained model](#step-4-manual-examination-of-a-trained-model) (any operation that requires parsing of a new code example): [JDK](https://openjdk.java.net/install/)
