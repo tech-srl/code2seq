@@ -25,13 +25,9 @@ parser.add_argument('--seed', type=int, default=239)
 
 
 def __collect_asts(json_file):
-    asts = []
     with open(json_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            ast = json.loads(line.strip())
-            asts.append(ast)
-
-    return asts
+        for line in tqdm.tqdm(f):
+            yield line
 
 
 def __terminals(ast, node_index, args):
@@ -170,8 +166,8 @@ def main():
     np.random.seed(args.seed)
 
     data_dir = Path(args.data_dir)
-    trains = __collect_asts(data_dir / 'python100k_train.json')
-    evals = __collect_asts(data_dir / 'python50k_eval.json')
+    trains = list(__collect_asts(data_dir / 'python100k_train.json'))
+    evals = list(__collect_asts(data_dir / 'python50k_eval.json'))
 
     train, valid = sklearn_model_selection.train_test_split(
         trains,
@@ -186,7 +182,7 @@ def main():
             (train, valid, test),
     ):
         output_file = output_dir / f'{split_name}_output_file.txt'
-        __collect_all_and_save(split, args, output_file)
+        __collect_all_and_save((json.loads(line) for line in split), args, output_file)
 
 
 if __name__ == '__main__':
