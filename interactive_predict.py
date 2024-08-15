@@ -2,7 +2,6 @@ from common import Common
 from extractor import Extractor
 
 SHOW_TOP_CONTEXTS = 10
-MAX_PATH_LENGTH = 8
 MAX_PATH_WIDTH = 2
 EXTRACTION_API = 'https://po3g2dx2qa.execute-api.us-east-1.amazonaws.com/production/extractmethods'
 
@@ -14,7 +13,7 @@ class InteractivePredictor:
         model.predict([])
         self.model = model
         self.config = config
-        self.path_extractor = Extractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=2)
+        self.path_extractor = Extractor(config, EXTRACTION_API, self.config.MAX_PATH_LENGTH, max_path_width=MAX_PATH_WIDTH)
 
     @staticmethod
     def read_file(input_filename):
